@@ -38,9 +38,12 @@ if ('Gyroscope' in window) {
         console.log('Cannot connect to the sensor.');
       }
     };
-    gyroscope.onreading = (e) => {
-      console.log(e);
-    };
+    console.log(1)
+    gyroscope.addEventListener("reading", (e) => {
+      console.log(`Angular velocity along the X-axis ${gyroscope.x}`);
+      console.log(`Angular velocity along the Y-axis ${gyroscope.y}`);
+      console.log(`Angular velocity along the Z-axis ${gyroscope.z}`);
+    });
     gyroscope.start();
   } catch (error) {
     // Handle construction errors.
