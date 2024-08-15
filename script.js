@@ -1,9 +1,7 @@
-alert("start 1")
-
 let accelerometer = null;
 if ('Accelerometer' in window) {
   try {
-    accelerometer = new Accelerometer({ frequency: 60 });
+    accelerometer = new Accelerometer({ frequency: 10 });
   } catch (error) {
     if (error.name === 'SecurityError') {
       alert('Sensor construction was blocked by the Permissions Policy.');
@@ -20,7 +18,6 @@ if ('Accelerometer' in window) {
 let gyroscope = null;
 if ('Gyroscope' in window) {
   try {
-    alert('ggg');
     gyroscope = new Gyroscope({ frequency: 10 });
   } catch (error) {
     if (error.name === 'SecurityError') {
@@ -34,9 +31,17 @@ if ('Gyroscope' in window) {
 } else {
   alert('No Gyroscope API')
 }
-alert(`${accelerometer} ${gyroscope}`)
 
-if (accelerometer && gyroscope) {
+if (!!accelerometer && !!gyroscope) {
+  const accPermissionResult = await navigator.permissions.query({ name: "accelerometer" });
+  const gyroPermissionResult = await navigator.permissions.query({ name: "gyroscope" });
+  if (accPermissionResult.state === "denied") {
+    alert("Permission to use accelerometer sensor is denied");
+  }
+  if (gyroPermissionResult.state === "denied") {
+    alert("Permission to use gyroscope sensor is denied");
+  }
+
   const startButton = document.getElementById('startButton');
   const canvas = document.getElementById('chartCanvas').getContext('2d');
   
