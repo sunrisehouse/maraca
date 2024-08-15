@@ -1,3 +1,5 @@
+alert("start")
+
 let accelrometer = null;
 if ('Accelerometer' in window) {
   try {
