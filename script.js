@@ -2,14 +2,6 @@ let accelrometer = null;
 if ('Accelerometer' in window) {
   try {
     accelerometer = new Accelerometer({ frequency: 10 });
-    accelerometer.onerror = (event) => {
-      // Handle runtime errors.
-      if (event.error.name === 'NotAllowedError') {
-        alert('Permission to access sensor was denied.');
-      } else if (event.error.name === 'NotReadableError') {
-        alert('Cannot connect to the sensor.');
-      }
-    };
   } catch (error) {
     // Handle construction errors.
     if (error.name === 'SecurityError') {
@@ -26,14 +18,6 @@ let gyroscope = null;
 if ('Gyroscope' in window) {
   try {
     gyroscope = new Gyroscope({ frequency: 10 });
-    gyroscope.onerror = (event) => {
-      // Handle runtime errors.
-      if (event.error.name === 'NotAllowedError') {
-        alert('Permission to access sensor was denied.');
-      } else if (event.error.name === 'NotReadableError') {
-        alert('Cannot connect to the sensor.');
-      }
-    };
   } catch (error) {
     // Handle construction errors.
     if (error.name === 'SecurityError') {
