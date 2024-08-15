@@ -45,9 +45,9 @@ if ('Gyroscope' in window) {
   } catch (error) {
     // Handle construction errors.
     if (error.name === 'SecurityError') {
-      console.log('Sensor construction was blocked by the Permissions Policy.');
+      alert('Sensor construction was blocked by the Permissions Policy.');
     } else if (error.name === 'ReferenceError') {
-      console.log('Sensor is not supported by the User Agent.');
+      alert('Sensor is not supported by the User Agent.');
     } else {
       throw error;
     }
