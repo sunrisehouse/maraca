@@ -1,6 +1,6 @@
 alert("start 1")
 
-let accelrometer = null;
+let accelerometer = null;
 if ('Accelerometer' in window) {
   try {
     alert('aaa');
@@ -39,9 +39,9 @@ if ('Gyroscope' in window) {
 } else {
   alert('why4')
 }
-alert(`${accelrometer} ${gyroscope}`)
+alert(`${accelerometer} ${gyroscope}`)
 
-if (accelrometer && gyroscope) {
+if (accelerometer && gyroscope) {
   const startButton = document.getElementById('startButton');
   const canvas = document.getElementById('chartCanvas').getContext('2d');
   
