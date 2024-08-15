@@ -3,7 +3,7 @@ alert("start")
 let accelrometer = null;
 if ('Accelerometer' in window) {
   try {
-    accelerometer = new Accelerometer({ frequency: 10 });
+    accelerometer = new Accelerometer({ frequency: 60 });
   } catch (error) {
     // Handle construction errors.
     if (error.name === 'SecurityError') {
@@ -14,6 +14,7 @@ if ('Accelerometer' in window) {
       alert(`error ${error.name}`)
     }
   }
+  alert('why1')
 } else {
   alert('why')
 }
@@ -29,10 +30,12 @@ if ('Gyroscope' in window) {
     } else if (error.name === 'ReferenceError') {
       alert('Sensor is not supported by the User Agent.');
     } else {
-      alert('error')
+      alert(`error ${error.name}`)
     }
   }
-}
+  alert('why3')
+} else {
+  alert('why4')
 
 alert(`${accelrometer} ${gyroscope}`)
 
