@@ -3,21 +3,18 @@ alert("start 1")
 let accelerometer = null;
 if ('Accelerometer' in window) {
   try {
-    alert('aaa');
     accelerometer = new Accelerometer({ frequency: 60 });
   } catch (error) {
-    // Handle construction errors.
     if (error.name === 'SecurityError') {
       alert('Sensor construction was blocked by the Permissions Policy.');
     } else if (error.name === 'ReferenceError') {
       alert('Sensor is not supported by the User Agent.');
     } else {
-      alert(`error ${error.name}`)
+      alert(`error ${error.name}`);
     }
   }
-  alert('why1')
 } else {
-  alert('why')
+  alert('No Accelerometer API');
 }
 
 let gyroscope = null;
@@ -26,7 +23,6 @@ if ('Gyroscope' in window) {
     alert('ggg');
     gyroscope = new Gyroscope({ frequency: 10 });
   } catch (error) {
-    // Handle construction errors.
     if (error.name === 'SecurityError') {
       alert('Sensor construction was blocked by the Permissions Policy.');
     } else if (error.name === 'ReferenceError') {
@@ -35,9 +31,8 @@ if ('Gyroscope' in window) {
       alert(`error ${error.name}`)
     }
   }
-  alert('why3')
 } else {
-  alert('why4')
+  alert('No Gyroscope API')
 }
 alert(`${accelerometer} ${gyroscope}`)
 
