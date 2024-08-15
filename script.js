@@ -10,10 +10,6 @@ if ('Accelerometer' in window) {
         alert('Cannot connect to the sensor.');
       }
     };
-    accelerometer.onreading = (e) => {
-      console.log(e);
-    };
-    accelerometer.start();
   } catch (error) {
     // Handle construction errors.
     if (error.name === 'SecurityError') {
@@ -38,10 +34,6 @@ if ('Gyroscope' in window) {
         alert('Cannot connect to the sensor.');
       }
     };
-    gyroscope.addEventListener("reading", (e) => {
-      alert(`Angular velocity along ${gyroscope.x} ${gyroscope.y} ${gyroscope.z}`);
-    });
-    gyroscope.start();
   } catch (error) {
     // Handle construction errors.
     if (error.name === 'SecurityError') {
@@ -53,6 +45,8 @@ if ('Gyroscope' in window) {
     }
   }
 }
+
+alert(`${accelrometer} ${gyroscope}`)
 
 if (accelrometer && gyroscope) {
   const startButton = document.getElementById('startButton');
