@@ -23,7 +23,7 @@ if ('Accelerometer' in window) {
 let gyroscope = null;
 if ('Gyroscope' in window) {
   try {
-    alert('ggg);
+    alert('ggg');
     gyroscope = new Gyroscope({ frequency: 10 });
   } catch (error) {
     // Handle construction errors.
