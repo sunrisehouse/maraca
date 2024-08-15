@@ -3,6 +3,7 @@ alert("start")
 let accelrometer = null;
 if ('Accelerometer' in window) {
   try {
+    alert('aaa')
     accelerometer = new Accelerometer({ frequency: 60 });
   } catch (error) {
     // Handle construction errors.
@@ -22,6 +23,7 @@ if ('Accelerometer' in window) {
 let gyroscope = null;
 if ('Gyroscope' in window) {
   try {
+    alert('ggg)
     gyroscope = new Gyroscope({ frequency: 10 });
   } catch (error) {
     // Handle construction errors.
@@ -36,7 +38,7 @@ if ('Gyroscope' in window) {
   alert('why3')
 } else {
   alert('why4')
-
+}
 alert(`${accelrometer} ${gyroscope}`)
 
 if (accelrometer && gyroscope) {
