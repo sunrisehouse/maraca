@@ -11,9 +11,11 @@ if ('Accelerometer' in window) {
     } else if (error.name === 'ReferenceError') {
       alert('Sensor is not supported by the User Agent.');
     } else {
-      alert('error')
+      alert(`error ${error.name}`)
     }
   }
+} else {
+  alert('why')
 }
 
 let gyroscope = null;
