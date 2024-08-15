@@ -5,9 +5,9 @@ if ('Accelerometer' in window) {
     accelerometer.onerror = (event) => {
       // Handle runtime errors.
       if (event.error.name === 'NotAllowedError') {
-        console.log('Permission to access sensor was denied.');
+        alert('Permission to access sensor was denied.');
       } else if (event.error.name === 'NotReadableError') {
-        console.log('Cannot connect to the sensor.');
+        alert('Cannot connect to the sensor.');
       }
     };
     accelerometer.onreading = (e) => {
@@ -17,9 +17,9 @@ if ('Accelerometer' in window) {
   } catch (error) {
     // Handle construction errors.
     if (error.name === 'SecurityError') {
-      console.log('Sensor construction was blocked by the Permissions Policy.');
+      alert('Sensor construction was blocked by the Permissions Policy.');
     } else if (error.name === 'ReferenceError') {
-      console.log('Sensor is not supported by the User Agent.');
+      alert('Sensor is not supported by the User Agent.');
     } else {
       throw error;
     }
@@ -33,16 +33,13 @@ if ('Gyroscope' in window) {
     gyroscope.onerror = (event) => {
       // Handle runtime errors.
       if (event.error.name === 'NotAllowedError') {
-        console.log('Permission to access sensor was denied.');
+        alert('Permission to access sensor was denied.');
       } else if (event.error.name === 'NotReadableError') {
-        console.log('Cannot connect to the sensor.');
+        alert('Cannot connect to the sensor.');
       }
     };
-    console.log(1)
     gyroscope.addEventListener("reading", (e) => {
-      console.log(`Angular velocity along the X-axis ${gyroscope.x}`);
-      console.log(`Angular velocity along the Y-axis ${gyroscope.y}`);
-      console.log(`Angular velocity along the Z-axis ${gyroscope.z}`);
+      alert(`Angular velocity along ${gyroscope.x} ${gyroscope.y} ${gyroscope.z}`);
     });
     gyroscope.start();
   } catch (error) {
