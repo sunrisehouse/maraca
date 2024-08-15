@@ -17,7 +17,7 @@ if ('Accelerometer' in window) {
     } else if (error.name === 'ReferenceError') {
       alert('Sensor is not supported by the User Agent.');
     } else {
-      throw error;
+      alert('error')
     }
   }
 }
@@ -41,7 +41,7 @@ if ('Gyroscope' in window) {
     } else if (error.name === 'ReferenceError') {
       alert('Sensor is not supported by the User Agent.');
     } else {
-      throw error;
+      alert('error')
     }
   }
 }
