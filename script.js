@@ -1,3 +1,5 @@
+function 
+
 let accelerometer = null;
 if ('Accelerometer' in window) {
   try {
@@ -33,15 +35,6 @@ if ('Gyroscope' in window) {
 }
 
 if (!!accelerometer && !!gyroscope) {
-  const accPermissionResult = await navigator.permissions.query({ name: "accelerometer" });
-  const gyroPermissionResult = await navigator.permissions.query({ name: "gyroscope" });
-  if (accPermissionResult.state === "denied") {
-    alert("Permission to use accelerometer sensor is denied");
-  }
-  if (gyroPermissionResult.state === "denied") {
-    alert("Permission to use gyroscope sensor is denied");
-  }
-
   const startButton = document.getElementById('startButton');
   const canvas = document.getElementById('chartCanvas').getContext('2d');
   
@@ -102,16 +95,29 @@ if (!!accelerometer && !!gyroscope) {
   });
   
   // 가속도와 각속도 데이터를 수집하는 함수
-  function handleMotion(event) {
-      let acc = event.acceleration;
-      let gyro = event.rotationRate;
-  
-      if (acc && gyro) {
-          accData.push(acc.x + acc.y + acc.z); // 단순화한 가속도 값
-          gyroData.push(gyro.alpha + gyro.beta + gyro.gamma); // 단순화한 각속도 값
-          timeData.push((Date.now() - startTime) / 1000); // 시간 데이터
-          updateChart();
-      }
+  async function handleMotion(event) {
+    alert('start handle motion');
+    const accPermissionResult = await navigator.permissions.query({ name: "accelerometer" });
+    const gyroPermissionResult = await navigator.permissions.query({ name: "gyroscope" });
+    if (accPermissionResult.state === "denied" || gyroPermissionResult.state === "denied") {
+      alert("Permission to use accelerometer. gyroscope sensor is denied");
+      return;
+    }
+    accelerometer.addEventListener("reading", () => {
+      console.log(`Acceleration along the X-axis ${accelerometer.x}`);
+      console.log(`Acceleration along the Y-axis ${accelerometer.y}`);
+      console.log(`Acceleration along the Z-axis ${accelerometer.z}`);
+      accData.push(accelerometer.x + accelerometer.y + accelerometer.z); // 단순화한 가속도 값
+    });
+
+    gyroscope.addEventListener("reading", (e) => {
+      console.log(`Angular velocity along the X-axis ${gyroscope.x}`);
+      console.log(`Angular velocity along the Y-axis ${gyroscope.y}`);
+      console.log(`Angular velocity along the Z-axis ${gyroscope.z}`);
+      gyroData.push(gyroscope.alpha + gyroscope.beta + gyroscope.gamma);
+    });
+    accelerometer.start();
+    gyroscope.start();
   }
   
   // 소리 크기를 측정하는 함수
@@ -157,14 +163,11 @@ if (!!accelerometer && !!gyroscope) {
       timeData = [];
       startTime = Date.now();
   
-      if (window.DeviceMotionEvent) {
-          window.addEventListener('devicemotion', handleMotion);
-      }
-  
+      handleMotion();
       handleSound();
   
       setTimeout(() => {
-          window.removeEventListener('devicemotion', handleMotion);
+          alert(accData);
       }, 10000);
   });
 }
