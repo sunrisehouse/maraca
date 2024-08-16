@@ -105,6 +105,7 @@ async function init() {
   }
 
   accelerometer.addEventListener("reading", () => {
+    accData.push(accelerometer.x + accelerometer.y + accelerometer.z); // 단순화한 가속도 값
     const tr = document.createElement( "tr" );
     const td_t = document.createElement("td");
     const td_x = document.createElement("td");
@@ -119,10 +120,10 @@ async function init() {
     tr.appendChild(td_y);
     tr.appendChild(td_z);
     accelerometerResult.appendChild(tr);
-    accData.push(accelerometer.x + accelerometer.y + accelerometer.z); // 단순화한 가속도 값
   });
 
   gyroscope.addEventListener("reading", () => {
+    gyroData.push(gyroscope.alpha + gyroscope.beta + gyroscope.gamma);
     const tr = document.createElement( "tr" );
     const td_t = document.createElement("td");
     const td_x = document.createElement("td");
@@ -137,7 +138,6 @@ async function init() {
     tr.appendChild(td_y);
     tr.appendChild(td_z);
     gyroscopeResult.appendChild(tr);
-    gyroData.push(gyroscope.alpha + gyroscope.beta + gyroscope.gamma);
   });
 
   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -173,12 +173,12 @@ async function init() {
     gyroscope.start();
 
     setTimeout(() => {
-      alert(accData);
       accelerometer.stop();
       gyroscope.stop();
       clearInterval(soundInterval);
       stream.getTracks().forEach(track => track.stop()); // 마이크 스트림 종료
       updateChart();
+      alert("end");
     }, 10000);
   });
 }
