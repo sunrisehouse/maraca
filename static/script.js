@@ -40,7 +40,8 @@ async function init() {
   
   const startButton = document.getElementById('startButton');
   const canvas = document.getElementById('chartCanvas').getContext('2d');
-  const cs = document.getElementById('cs');
+  const accelerometerResult = document.getElementById('accelerometer-result');
+  const gyroscopeResult = document.getElementById('gyroscope-result');
   
   let accData = [];
   let gyroData = [];
@@ -104,16 +105,38 @@ async function init() {
   }
 
   accelerometer.addEventListener("reading", () => {
-    const dd = document.createElement( "div" );
-    dd.innerText = `${accelerometer.x} ${accelerometer.y} ${accelerometer.z}`
-    cs.appendChild(dd);
+    const tr = document.createElement( "tr" );
+    const td_t = document.createElement("td");
+    const td_x = document.createElement("td");
+    const td_y = document.createElement("td");
+    const td_z = document.createElement("td");
+    td_t.innerText = accelerometer.timestamp;
+    td_x.innerText = accelerometer.x;
+    td_y.innerText = accelerometer.y;
+    td_x.innerText = accelerometer.z;
+    tr.appendChild(td_t);
+    tr.appendChild(td_x);
+    tr.appendChild(td_y);
+    tr.appendChild(td_z);
+    accelerometerResult.appendChild(tr);
     accData.push(accelerometer.x + accelerometer.y + accelerometer.z); // 단순화한 가속도 값
   });
 
-  gyroscope.addEventListener("reading", (e) => {
-    const dd = document.createElement( "div" );
-    dd.innerText = `${gyroscope.x} ${gyroscope.y} ${gyroscope.z}`
-    cs.appendChild(dd);
+  gyroscope.addEventListener("reading", () => {
+    const tr = document.createElement( "tr" );
+    const td_t = document.createElement("td");
+    const td_x = document.createElement("td");
+    const td_y = document.createElement("td");
+    const td_z = document.createElement("td");
+    td_t.innerText = gyroscope.timestamp;
+    td_x.innerText = gyroscope.x;
+    td_y.innerText = gyroscope.y;
+    td_x.innerText = gyroscope.z;
+    tr.appendChild(td_t);
+    tr.appendChild(td_x);
+    tr.appendChild(td_y);
+    tr.appendChild(td_z);
+    gyroscopeResult.appendChild(tr);
     gyroData.push(gyroscope.alpha + gyroscope.beta + gyroscope.gamma);
   });
 
@@ -161,5 +184,3 @@ async function init() {
 }
 
 init();
-
-

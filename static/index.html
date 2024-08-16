@@ -32,11 +32,28 @@
     </style>
 </head>
 <body>
-    <div id="cs">
-      <h1>console</h1>
-    </div>
     <button id="startButton">측정 시작</button>
     <canvas id="chartCanvas"></canvas>
+
+    <h1>accelerometer</h1>
+    <table id="accelerometer-result">
+      <tr>
+        <th>time</th>
+        <th>x</th>
+        <th>y</th>
+        <th>z</th>
+      </tr>
+    </table>
+
+    <h1>gyroscope</h1>
+    <table id="gyroscope-result">
+      <tr>
+        <th>time</th>
+        <th>x</th>
+        <th>y</th>
+        <th>z</th>
+      </tr>
+    </table>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="./script.js"></script>
