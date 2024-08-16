@@ -114,7 +114,7 @@ async function init() {
     td_t.innerText = accelerometer.timestamp;
     td_x.innerText = accelerometer.x;
     td_y.innerText = accelerometer.y;
-    td_x.innerText = accelerometer.z;
+    td_z.innerText = accelerometer.z;
     tr.appendChild(td_t);
     tr.appendChild(td_x);
     tr.appendChild(td_y);
@@ -132,7 +132,7 @@ async function init() {
     td_t.innerText = gyroscope.timestamp;
     td_x.innerText = gyroscope.x;
     td_y.innerText = gyroscope.y;
-    td_x.innerText = gyroscope.z;
+    td_z.innerText = gyroscope.z;
     tr.appendChild(td_t);
     tr.appendChild(td_x);
     tr.appendChild(td_y);
