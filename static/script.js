@@ -98,31 +98,6 @@ async function init() {
       }
   });
   
-  // 가속도와 각속도 데이터를 수집하는 함수
-  async function handleMotion(event) {
-    alert('start handle motion');
-    const accPermissionResult = await navigator.permissions.query({ name: "accelerometer" });
-    const gyroPermissionResult = await navigator.permissions.query({ name: "gyroscope" });
-    
-    accelerometer.addEventListener("reading", () => {
-      cs.innerText += 'hihi1';
-      console.log(`Acceleration along the X-axis ${accelerometer.x}`);
-      console.log(`Acceleration along the Y-axis ${accelerometer.y}`);
-      console.log(`Acceleration along the Z-axis ${accelerometer.z}`);
-      accData.push(accelerometer.x + accelerometer.y + accelerometer.z); // 단순화한 가속도 값
-    });
-
-    gyroscope.addEventListener("reading", (e) => {
-      cs.innerText += 'hihi2';
-      console.log(`Angular velocity along the X-axis ${gyroscope.x}`);
-      console.log(`Angular velocity along the Y-axis ${gyroscope.y}`);
-      console.log(`Angular velocity along the Z-axis ${gyroscope.z}`);
-      gyroData.push(gyroscope.alpha + gyroscope.beta + gyroscope.gamma);
-    });
-    accelerometer.start();
-    gyroscope.start();
-  }
-  
   // 소리 크기를 측정하는 함수
   async function handleSound() {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -166,7 +141,24 @@ async function init() {
       timeData = [];
       startTime = Date.now();
   
-      handleMotion();
+      accelerometer.addEventListener("reading", () => {
+        cs.innerText += 'hihi1';
+        console.log(`Acceleration along the X-axis ${accelerometer.x}`);
+        console.log(`Acceleration along the Y-axis ${accelerometer.y}`);
+        console.log(`Acceleration along the Z-axis ${accelerometer.z}`);
+        accData.push(accelerometer.x + accelerometer.y + accelerometer.z); // 단순화한 가속도 값
+      });
+  
+      gyroscope.addEventListener("reading", (e) => {
+        cs.innerText += 'hihi2';
+        console.log(`Angular velocity along the X-axis ${gyroscope.x}`);
+        console.log(`Angular velocity along the Y-axis ${gyroscope.y}`);
+        console.log(`Angular velocity along the Z-axis ${gyroscope.z}`);
+        gyroData.push(gyroscope.alpha + gyroscope.beta + gyroscope.gamma);
+      });
+      accelerometer.start();
+      gyroscope.start();
+
       handleSound();
   
       setTimeout(() => {
