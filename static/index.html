@@ -29,7 +29,7 @@
             max-width: 100%;
             height: auto;
         }
-        table { height: 500px; overflow: auto }
+        .table-wrapper { max-height: 500px; overflow: auto }
     </style>
 </head>
 <body>
@@ -37,6 +37,7 @@
     <canvas id="chartCanvas"></canvas>
 
     <h1>accelerometer</h1>
+    <div class="table-wrapper">
     <table id="accelerometer-result">
       <tr>
         <th>time</th>
@@ -45,8 +46,9 @@
         <th>z</th>
       </tr>
     </table>
-
+    </div>
     <h1>gyroscope</h1>
+    <div class="table-wrapper">
     <table id="gyroscope-result">
       <tr>
         <th>time</th>
@@ -55,6 +57,7 @@
         <th>z</th>
       </tr>
     </table>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="./script.js"></script>
