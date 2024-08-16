@@ -1,7 +1,16 @@
-function 
-
-let accelerometer = null;
-if ('Accelerometer' in window) {
+async function init() {
+  alert('hello')
+  const accPermissionResult = await navigator.permissions.query({ name: "accelerometer" });
+  const gyroPermissionResult = await navigator.permissions.query({ name: "gyroscope" });
+  if (accPermissionResult.state === "denied" || gyroPermissionResult.state === "denied") {
+    alert("Permission to use accelerometer. gyroscope sensor is denied");
+    return;
+  }
+  if (!'Accelerometer' in window || !'Gyroscope' in window) {
+    alert('브라우저가 센서를 지원하지 않습니다.');
+  }
+  
+  let accelerometer = null;
   try {
     accelerometer = new Accelerometer({ frequency: 10 });
   } catch (error) {
@@ -10,15 +19,12 @@ if ('Accelerometer' in window) {
     } else if (error.name === 'ReferenceError') {
       alert('Sensor is not supported by the User Agent.');
     } else {
-      alert(`error ${error.name}`);
+      alert(`${error.name} ${error.message}`);
     }
+    return;
   }
-} else {
-  alert('No Accelerometer API');
-}
 
-let gyroscope = null;
-if ('Gyroscope' in window) {
+  let gyroscope = null;
   try {
     gyroscope = new Gyroscope({ frequency: 10 });
   } catch (error) {
@@ -27,14 +33,11 @@ if ('Gyroscope' in window) {
     } else if (error.name === 'ReferenceError') {
       alert('Sensor is not supported by the User Agent.');
     } else {
-      alert(`error ${error.name}`)
+      alert(`${error.name} ${error.message}`);
     }
+    return;
   }
-} else {
-  alert('No Gyroscope API')
-}
-
-if (!!accelerometer && !!gyroscope) {
+  
   const startButton = document.getElementById('startButton');
   const canvas = document.getElementById('chartCanvas').getContext('2d');
   
@@ -99,10 +102,7 @@ if (!!accelerometer && !!gyroscope) {
     alert('start handle motion');
     const accPermissionResult = await navigator.permissions.query({ name: "accelerometer" });
     const gyroPermissionResult = await navigator.permissions.query({ name: "gyroscope" });
-    if (accPermissionResult.state === "denied" || gyroPermissionResult.state === "denied") {
-      alert("Permission to use accelerometer. gyroscope sensor is denied");
-      return;
-    }
+    
     accelerometer.addEventListener("reading", () => {
       console.log(`Acceleration along the X-axis ${accelerometer.x}`);
       console.log(`Acceleration along the Y-axis ${accelerometer.y}`);
@@ -171,3 +171,7 @@ if (!!accelerometer && !!gyroscope) {
       }, 10000);
   });
 }
+
+init();
+
+
