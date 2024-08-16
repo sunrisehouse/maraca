@@ -47,20 +47,6 @@ async function init() {
   let soundData = [];
   let timeData = [];
   let startTime;
-
-  accelerometer.addEventListener("reading", () => {
-    const dd = document.createElement( "div" );
-    dd.innerText = `${accelerometer.x} ${accelerometer.y} ${accelerometer.z}`
-    cs.appendChild(dd);
-    accData.push(accelerometer.x + accelerometer.y + accelerometer.z); // 단순화한 가속도 값
-  });
-
-  gyroscope.addEventListener("reading", (e) => {
-    const dd = document.createElement( "div" );
-    dd.innerText = `${gyroscope.x} ${gyroscope.y} ${gyroscope.z}`
-    cs.appendChild(dd);
-    gyroData.push(gyroscope.alpha + gyroscope.beta + gyroscope.gamma);
-  });
   
   // Chart.js를 이용해 그래프 초기화
   let chart = new Chart(canvas, {
@@ -112,58 +98,64 @@ async function init() {
     }
   });
   
-  // 소리 크기를 측정하는 함수
-  async function handleSound() {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const audioContext = new AudioContext();
-    const analyser = audioContext.createAnalyser();
-    const microphone = audioContext.createMediaStreamSource(stream);
-    microphone.connect(analyser);
-
-    analyser.fftSize = 256;
-    const dataArray = new Uint8Array(analyser.frequencyBinCount);
-
-    const getSoundLevel = () => {
-        analyser.getByteFrequencyData(dataArray);
-        let sum = 0;
-        for (let i = 0; i < dataArray.length; i++) {
-            sum += dataArray[i];
-        }
-        let average = sum / dataArray.length;
-        soundData.push(average);
-    };
-
-    // 10초 동안 소리 데이터 수집
-    const soundInterval = setInterval(getSoundLevel, 100);
-
-    setTimeout(() => {
-        clearInterval(soundInterval);
-        stream.getTracks().forEach(track => track.stop()); // 마이크 스트림 종료
-      }, 10000);
-  }
-  
   // 차트를 업데이트하는 함수
   function updateChart() {
     chart.update();
   }
+
+  accelerometer.addEventListener("reading", () => {
+    const dd = document.createElement( "div" );
+    dd.innerText = `${accelerometer.x} ${accelerometer.y} ${accelerometer.z}`
+    cs.appendChild(dd);
+    accData.push(accelerometer.x + accelerometer.y + accelerometer.z); // 단순화한 가속도 값
+  });
+
+  gyroscope.addEventListener("reading", (e) => {
+    const dd = document.createElement( "div" );
+    dd.innerText = `${gyroscope.x} ${gyroscope.y} ${gyroscope.z}`
+    cs.appendChild(dd);
+    gyroData.push(gyroscope.alpha + gyroscope.beta + gyroscope.gamma);
+  });
+
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const audioContext = new AudioContext();
+  const analyser = audioContext.createAnalyser();
+  const microphone = audioContext.createMediaStreamSource(stream);
+  microphone.connect(analyser);
+
+  analyser.fftSize = 256;
+  const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+  const getSoundLevel = () => {
+    analyser.getByteFrequencyData(dataArray);
+    let sum = 0;
+    for (let i = 0; i < dataArray.length; i++) {
+        sum += dataArray[i];
+    }
+    let average = sum / dataArray.length;
+    soundData.push(average);
+  };
   
   // 측정 시작 버튼 클릭 이벤트
-  startButton.addEventListener('click', () => {
+  startButton.addEventListener('click', async () => {
     accData = [];
     gyroData = [];
     soundData = [];
     timeData = [];
     startTime = Date.now();
 
+    // 10초 동안 소리 데이터 수집
+    const soundInterval = setInterval(getSoundLevel, 100);
     accelerometer.start();
     gyroscope.start();
-
-    handleSound();
 
     setTimeout(() => {
       alert(accData);
       accelerometer.stop();
       gyroscope.stop();
+      clearInterval(soundInterval);
+      stream.getTracks().forEach(track => track.stop()); // 마이크 스트림 종료
+      updateChart();
     }, 10000);
   });
 }
