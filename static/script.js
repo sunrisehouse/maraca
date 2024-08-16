@@ -40,6 +40,7 @@ async function init() {
   
   const startButton = document.getElementById('startButton');
   const canvas = document.getElementById('chartCanvas').getContext('2d');
+  const cs = document.getElementById('cs');
   
   let accData = [];
   let gyroData = [];
@@ -104,6 +105,7 @@ async function init() {
     const gyroPermissionResult = await navigator.permissions.query({ name: "gyroscope" });
     
     accelerometer.addEventListener("reading", () => {
+      cs.innerText += 'hihi1';
       console.log(`Acceleration along the X-axis ${accelerometer.x}`);
       console.log(`Acceleration along the Y-axis ${accelerometer.y}`);
       console.log(`Acceleration along the Z-axis ${accelerometer.z}`);
@@ -111,6 +113,7 @@ async function init() {
     });
 
     gyroscope.addEventListener("reading", (e) => {
+      cs.innerText += 'hihi2';
       console.log(`Angular velocity along the X-axis ${gyroscope.x}`);
       console.log(`Angular velocity along the Y-axis ${gyroscope.y}`);
       console.log(`Angular velocity along the Z-axis ${gyroscope.z}`);
