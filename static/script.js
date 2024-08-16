@@ -47,6 +47,20 @@ async function init() {
   let soundData = [];
   let timeData = [];
   let startTime;
+
+  accelerometer.addEventListener("reading", () => {
+    const dd = document.createElement( "div" );
+    dd.innerText = `${accelerometer.x} ${accelerometer.y} ${accelerometer.z}`
+    cs.appendChild(dd);
+    accData.push(accelerometer.x + accelerometer.y + accelerometer.z); // 단순화한 가속도 값
+  });
+
+  gyroscope.addEventListener("reading", (e) => {
+    const dd = document.createElement( "div" );
+    dd.innerText = `${gyroscope.x} ${gyroscope.y} ${gyroscope.z}`
+    cs.appendChild(dd);
+    gyroData.push(gyroscope.alpha + gyroscope.beta + gyroscope.gamma);
+  });
   
   // Chart.js를 이용해 그래프 초기화
   let chart = new Chart(canvas, {
@@ -141,28 +155,15 @@ async function init() {
     timeData = [];
     startTime = Date.now();
 
-    accelerometer.addEventListener("reading", () => {
-      cs.innerText += 'hihi1';
-      console.log(`Acceleration along the X-axis ${accelerometer.x}`);
-      console.log(`Acceleration along the Y-axis ${accelerometer.y}`);
-      console.log(`Acceleration along the Z-axis ${accelerometer.z}`);
-      accData.push(accelerometer.x + accelerometer.y + accelerometer.z); // 단순화한 가속도 값
-    });
-
-    gyroscope.addEventListener("reading", (e) => {
-      cs.innerText += 'hihi2';
-      console.log(`Angular velocity along the X-axis ${gyroscope.x}`);
-      console.log(`Angular velocity along the Y-axis ${gyroscope.y}`);
-      console.log(`Angular velocity along the Z-axis ${gyroscope.z}`);
-      gyroData.push(gyroscope.alpha + gyroscope.beta + gyroscope.gamma);
-    });
     accelerometer.start();
     gyroscope.start();
 
     handleSound();
 
     setTimeout(() => {
-        alert(accData);
+      alert(accData);
+      accelerometer.stop();
+      gyroscope.stop();
     }, 10000);
   });
 }
