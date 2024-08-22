@@ -97,10 +97,10 @@ function Acquisition() {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
         // 오디오 워크렛 모듈을 추가 (my-processor.js)
-        await audioContext.audioWorklet.addModule('my-processor.js');
+        await audioContext.audioWorklet.addModule('/maraca/build/audio-processor.js');
 
         // AudioWorkletNode 생성
-        audioWorkletNode = new AudioWorkletNode(audioContext, 'my-audio-processor');
+        audioWorkletNode = new AudioWorkletNode(audioContext, 'audio-processor');
 
         // 사용자로부터 마이크 접근 권한 요청
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
