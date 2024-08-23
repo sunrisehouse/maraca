@@ -1,5 +1,5 @@
 import './Acquisition.css';
-import { Box, Button, Container, InputAdornment, Paper, TextField, Toolbar, Typography } from '@mui/material';
+import { Box, Container, Paper } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { LineChart } from '@mui/x-charts';
 
@@ -34,18 +34,19 @@ function Acquisition() {
 
   useEffect(() => {
     let accelerometer = null;
-    let gyroscope = null;
     const init = async () => {
       const accPermissionResult = await navigator.permissions.query({ name: "accelerometer" });
-      const gyroPermissionResult = await navigator.permissions.query({ name: "gyroscope" });
       
-      if (accPermissionResult.state === "denied" || gyroPermissionResult.state === "denied") {
+      if (accPermissionResult.state === "denied") {
         alert("Permission to use accelerometer. gyroscope sensor is denied");
-      }
-      if (!'Accelerometer' in window || !'Gyroscope' in window) {
-        alert('브라우저가 센서를 지원하지 않습니다.');
+        return () => {};
       }
       
+      if (!'Accelerometer' in window) {
+        alert('브라우저가 센서를 지원하지 않습니다.');
+        return () => {};
+      }
+
       try {
         accelerometer = new window.Accelerometer({ frequency: 10 });
         accelerometer.addEventListener("reading", () => {
@@ -57,15 +58,15 @@ function Acquisition() {
             z: accelerometer.z,
             a: Math.sqrt(accelerometer.x ** 2 + accelerometer.y ** 2 + accelerometer.z ** 2),
           });
-          setAccelerometerMetrics([
-            ...accelerometerMetrics,
+          setAccelerometerMetrics(prev => [
+            ...prev,
             {
               t: now,
               x: accelerometer.x,
               y: accelerometer.y,
               z: accelerometer.z,
               a: Math.sqrt(accelerometer.x ** 2 + accelerometer.y ** 2 + accelerometer.z ** 2),
-            }
+            },
           ])
         });
         accelerometer.start();
@@ -77,6 +78,31 @@ function Acquisition() {
         } else {
           alert(`${error.name} ${error.message}`);
         }
+      }
+    }
+    
+    init();
+
+    return () => {
+      if (accelerometer) {
+        accelerometer.stop();
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    let gyroscope = null;
+    const init = async () => {
+      const gyroPermissionResult = await navigator.permissions.query({ name: "gyroscope" });
+      
+      if (gyroPermissionResult.state === "denied") {
+        alert("Permission to use accelerometer. gyroscope sensor is denied");
+        return () => {};
+      }
+
+      if (!'Gyroscope' in window) {
+        alert('브라우저가 센서를 지원하지 않습니다.');
+        return () => {};
       }
   
       try {
@@ -90,13 +116,16 @@ function Acquisition() {
             z: gyroscope.z,
             a: Math.sqrt(gyroscope.x ** 2 + gyroscope.y ** 2 + gyroscope.z ** 2),
           });
-          setGyroscopeMetrics([...gyroscopeMetrics, {
-            t: now,
-            x: gyroscope.x,
-            y: gyroscope.y,
-            z: gyroscope.z,
-            a: Math.sqrt(gyroscope.x ** 2 + gyroscope.y ** 2 + gyroscope.z ** 2),
-          }])
+          setGyroscopeMetrics(prev => [
+            ...prev,
+            {
+              t: now,
+              x: gyroscope.x,
+              y: gyroscope.y,
+              z: gyroscope.z,
+              a: Math.sqrt(gyroscope.x ** 2 + gyroscope.y ** 2 + gyroscope.z ** 2),
+            },
+          ])
         });
         gyroscope.start();
       } catch (error) {
@@ -113,9 +142,6 @@ function Acquisition() {
     init();
 
     return () => {
-      if (accelerometer) {
-        accelerometer.stop();
-      }
       if (gyroscope) {
         gyroscope.stop();
       }
