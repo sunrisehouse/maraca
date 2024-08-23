@@ -1,21 +1,29 @@
 import './Acquisition.css';
 import { Box, Button, Container, InputAdornment, Paper, TextField, Toolbar, Typography } from '@mui/material';
 import { useEffect, useState } from 'react';
+import { LineChart } from '@mui/x-charts';
 
 function Acquisition() {
-  const [time, setTime] = useState("");
-  const [decibel, setDecibel] = useState(0);
+  const [decibelMetrics, setDecibelMetrics] = useState([]);
+  const [accelerometerMetrics, setAccelerometerMetrics] = useState([]);
+  const [gyroscopeMetrics, setGyroscopeMetrics] = useState([]);
+  const [decibelMetric, setDecibelMetric] = useState({
+    t: 0,
+    d: 0,
+  });
   const [accelerometerMetric, setAccelerometerMetric] = useState({
     t: 0,
     x: 0,
     y: 0,
     z: 0,
+    a: 0,
   });
   const [gyroscopeMetric, setGyroscopeMetric] = useState({
     t: 0,
     x: 0,
     y: 0,
     z: 0,
+    a: 0,
   });
 
   useEffect(() => {
@@ -40,7 +48,18 @@ function Acquisition() {
             x: accelerometer.x,
             y: accelerometer.y,
             z: accelerometer.z,
+            a: Math.sqrt(accelerometer.x ** 2 + accelerometer.y ** 2 + accelerometer.z ** 2),
           });
+          setAccelerometerMetrics([
+            ...accelerometerMetrics,
+            {
+              t: accelerometer.timestamp,
+              x: accelerometer.x,
+              y: accelerometer.y,
+              z: accelerometer.z,
+              a: Math.sqrt(accelerometer.x ** 2 + accelerometer.y ** 2 + accelerometer.z ** 2),
+            }
+          ])
         });
         accelerometer.start();
       } catch (error) {
@@ -61,7 +80,15 @@ function Acquisition() {
             x: gyroscope.x,
             y: gyroscope.y,
             z: gyroscope.z,
+            a: Math.sqrt(gyroscope.x ** 2 + gyroscope.y ** 2 + gyroscope.z ** 2),
           });
+          setGyroscopeMetrics([...gyroscopeMetrics, {
+            t: gyroscope.timestamp,
+            x: gyroscope.x,
+            y: gyroscope.y,
+            z: gyroscope.z,
+            a: Math.sqrt(gyroscope.x ** 2 + gyroscope.y ** 2 + gyroscope.z ** 2),
+          }])
         });
         gyroscope.start();
       } catch (error) {
@@ -116,15 +143,12 @@ function Acquisition() {
         audioWorkletNode.port.onmessage = (event) => {
           const { decibel, timestamp } = event.data;
 
-          // 데시벨 값 업데이트
-          setDecibel(decibel.toFixed(2));
+          setDecibelMetric({
+            t: timestamp,
+            d: decibel,
+          });
 
-          // 시간 값을 인간이 읽을 수 있는 형식으로 변환
-          const date = new Date(timestamp);
-          const formattedTime = `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`;
-
-          // 시간 업데이트
-          setTime(formattedTime);
+          setDecibelMetrics([...decibelMetrics, { t: timestamp, d: decibel }]);
         };
       } catch (error) {
         console.error(error);
@@ -143,25 +167,72 @@ function Acquisition() {
 
   return (
     <Container maxWidth="sm">
-      <Box>
-        <h1>Decibel Meter</h1>
-        <p>Measurement Time: {time}</p>
-        <p>Current Decibel Level: {decibel} dB</p>
-      </Box>
-      <Box>
-        <h1>Accelerometer Data</h1>
-        <p>T: {accelerometerMetric.t ? accelerometerMetric.t.toFixed(2) : "N/A"}</p>
-        <p>X: {accelerometerMetric.x ? accelerometerMetric.x.toFixed(2) : "N/A"}</p>
-        <p>Y: {accelerometerMetric.y ? accelerometerMetric.y.toFixed(2) : "N/A"}</p>
-        <p>Z: {accelerometerMetric.z ? accelerometerMetric.z.toFixed(2) : "N/A"}</p>
-      </Box>
-      <Box>
-        <h1>Gyroscope Data</h1>
-        <p>T: {gyroscopeMetric.t ? gyroscopeMetric.t.toFixed(2) : "N/A"}</p>
-        <p>X: {gyroscopeMetric.x ? gyroscopeMetric.x.toFixed(2) : "N/A"}</p>
-        <p>Y: {gyroscopeMetric.y ? gyroscopeMetric.y.toFixed(2) : "N/A"}</p>
-        <p>Z: {gyroscopeMetric.z ? gyroscopeMetric.z.toFixed(2) : "N/A"}</p>
-      </Box>
+      <Paper>
+        <Container>
+          <Box>
+            <h3>Decibel Meter Data</h3>
+            <p>Measurement Time: {decibelMetric.t ? decibelMetric.t.toFixed(2) : "N/A"}</p>
+            <p>Current Decibel Level: {decibelMetric.d ? decibelMetric.d.toFixed(2) : "N/A"} dB</p>
+          </Box>
+          <Box>
+            <h3>Accelerometer Data</h3>
+            <p>T: {accelerometerMetric.t ? accelerometerMetric.t.toFixed(2) : "N/A"}</p>
+            <p>X: {accelerometerMetric.x ? accelerometerMetric.x.toFixed(2) : "N/A"}</p>
+            <p>Y: {accelerometerMetric.y ? accelerometerMetric.y.toFixed(2) : "N/A"}</p>
+            <p>Z: {accelerometerMetric.z ? accelerometerMetric.z.toFixed(2) : "N/A"}</p>
+          </Box>
+          <Box>
+            <h3>Gyroscope Data</h3>
+            <p>T: {gyroscopeMetric.t ? gyroscopeMetric.t.toFixed(2) : "N/A"}</p>
+            <p>X: {gyroscopeMetric.x ? gyroscopeMetric.x.toFixed(2) : "N/A"}</p>
+            <p>Y: {gyroscopeMetric.y ? gyroscopeMetric.y.toFixed(2) : "N/A"}</p>
+            <p>Z: {gyroscopeMetric.z ? gyroscopeMetric.z.toFixed(2) : "N/A"}</p>
+          </Box>
+        </Container>
+      </Paper>
+      <Paper>
+        <Container>
+          <Box>
+          <h3>Decibel Meter Graph</h3>
+            <LineChart
+              xAxis={[{ data: decibelMetrics.length > 1 ? decibelMetrics.map(metric => metric.t) : [0, 1] }]}
+              series={[
+                {
+                  data: [decibelMetrics.map(metric => metric.d)]
+                },
+              ]}
+              width={300}
+              height={200}
+            />
+          </Box>
+          <Box>
+          <h3>Accelerometer Graph</h3>
+            <LineChart
+              xAxis={[{ data: accelerometerMetrics.length > 1 ? accelerometerMetrics.map(metric => metric.t) : [0, 1] }]}
+              series={[
+                {
+                  data: [accelerometerMetrics.map(metric => metric.a)]
+                },
+              ]}
+              width={300}
+              height={200}
+            />
+          </Box>
+          <Box>
+          <h3>Gyroscope Graph</h3>
+            <LineChart
+              xAxis={[{ data: gyroscopeMetrics.length > 1 ? gyroscopeMetrics.map(metric => metric.t) : [0, 1] }]}
+              series={[
+                {
+                  data: [gyroscopeMetrics.map(metric => metric.a)]
+                },
+              ]}
+              width={300}
+              height={200}
+            />
+          </Box>
+        </Container>
+      </Paper>
     </Container>
   );
 }
