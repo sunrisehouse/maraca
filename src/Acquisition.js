@@ -1,9 +1,15 @@
 import './Acquisition.css';
 import { Box, Button, Container, InputAdornment, Paper, TextField, Toolbar, Typography } from '@mui/material';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LineChart } from '@mui/x-charts';
 
 function Acquisition() {
+  const startDate = useMemo(() => {
+    return Date.now();
+  }, []);
+  const endDate = useMemo(() => {
+    return startDate + 100000;
+  }, []);
   const [decibelMetrics, setDecibelMetrics] = useState([]);
   const [accelerometerMetrics, setAccelerometerMetrics] = useState([]);
   const [gyroscopeMetrics, setGyroscopeMetrics] = useState([]);
@@ -43,8 +49,9 @@ function Acquisition() {
       try {
         accelerometer = new window.Accelerometer({ frequency: 10 });
         accelerometer.addEventListener("reading", () => {
+          const now = Date.now()
           setAccelerometerMetric({
-            t: accelerometer.timestamp,
+            t: now,
             x: accelerometer.x,
             y: accelerometer.y,
             z: accelerometer.z,
@@ -53,7 +60,7 @@ function Acquisition() {
           setAccelerometerMetrics([
             ...accelerometerMetrics,
             {
-              t: accelerometer.timestamp,
+              t: now,
               x: accelerometer.x,
               y: accelerometer.y,
               z: accelerometer.z,
@@ -75,15 +82,16 @@ function Acquisition() {
       try {
         gyroscope = new window.Gyroscope({ frequency: 10 });
         gyroscope.addEventListener("reading", () => {
+          const now = Date.now()
           setGyroscopeMetric({
-            t: gyroscope.timestamp,
+            t: now,
             x: gyroscope.x,
             y: gyroscope.y,
             z: gyroscope.z,
             a: Math.sqrt(gyroscope.x ** 2 + gyroscope.y ** 2 + gyroscope.z ** 2),
           });
           setGyroscopeMetrics([...gyroscopeMetrics, {
-            t: gyroscope.timestamp,
+            t: now,
             x: gyroscope.x,
             y: gyroscope.y,
             z: gyroscope.z,
@@ -144,7 +152,7 @@ function Acquisition() {
           const { decibel, timestamp } = event.data;
 
           setDecibelMetric({
-            t: timestamp,
+            t: Date.now(),
             d: decibel,
           });
 
@@ -195,7 +203,7 @@ function Acquisition() {
           <Box>
           <h3>Decibel Meter Graph ({decibelMetrics.length})</h3>
             <LineChart
-              xAxis={[{ data: decibelMetrics.length > 1 ? decibelMetrics.map(metric => metric.t) : [0, 1] }]}
+              xAxis={[{ data: [startDate, endDate] }]}
               series={[
                 {
                   data: [decibelMetrics.map(metric => metric.d)]
@@ -208,7 +216,7 @@ function Acquisition() {
           <Box>
           <h3>Accelerometer Graph ({accelerometerMetrics.length})</h3>
             <LineChart
-              xAxis={[{ data: accelerometerMetrics.length > 1 ? accelerometerMetrics.map(metric => metric.t) : [0, 1] }]}
+              xAxis={[{ data: [startDate, endDate] }]}
               series={[
                 {
                   data: [accelerometerMetrics.map(metric => metric.a)]
@@ -221,7 +229,7 @@ function Acquisition() {
           <Box>
           <h3>Gyroscope Graph ({gyroscopeMetrics.length})</h3>
             <LineChart
-              xAxis={[{ data: gyroscopeMetrics.length > 1 ? gyroscopeMetrics.map(metric => metric.t) : [0, 1] }]}
+              xAxis={[{ data: [startDate, endDate] }]}
               series={[
                 {
                   data: [gyroscopeMetrics.map(metric => metric.a)]
