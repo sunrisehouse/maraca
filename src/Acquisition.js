@@ -193,7 +193,7 @@ function Acquisition() {
       <Paper>
         <Container>
           <Box>
-          <h3>Decibel Meter Graph</h3>
+          <h3>Decibel Meter Graph ({decibelMetrics.length})</h3>
             <LineChart
               xAxis={[{ data: decibelMetrics.length > 1 ? decibelMetrics.map(metric => metric.t) : [0, 1] }]}
               series={[
@@ -206,7 +206,7 @@ function Acquisition() {
             />
           </Box>
           <Box>
-          <h3>Accelerometer Graph</h3>
+          <h3>Accelerometer Graph ({accelerometerMetrics.length})</h3>
             <LineChart
               xAxis={[{ data: accelerometerMetrics.length > 1 ? accelerometerMetrics.map(metric => metric.t) : [0, 1] }]}
               series={[
@@ -219,7 +219,7 @@ function Acquisition() {
             />
           </Box>
           <Box>
-          <h3>Gyroscope Graph</h3>
+          <h3>Gyroscope Graph ({gyroscopeMetrics.length})</h3>
             <LineChart
               xAxis={[{ data: gyroscopeMetrics.length > 1 ? gyroscopeMetrics.map(metric => metric.t) : [0, 1] }]}
               series={[
