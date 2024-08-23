@@ -1,5 +1,5 @@
 import './Acquisition.css';
-import { Box, Container, Paper } from '@mui/material';
+import { Box, Container, Paper, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { LineChart } from '@mui/x-charts';
 
@@ -193,16 +193,16 @@ function Acquisition() {
   }, []);
 
   return (
-    <Container maxWidth="sm">
-      <Paper>
+    <Container maxWidth="sm" sx={{ paddingTop: "20px", paddingBottom: "20px" }}>
+      <Paper sx={{ paddingTop: "16px", paddingBottom: "16px" }}>
         <Container>
           <Box>
-            <h3>Decibel Meter Data</h3>
+            <Typography variant='h6'>Decibel Meter Data</Typography>
             <p>Measurement Time: {decibelMetric.t ? decibelMetric.t.toFixed(2) : "N/A"}</p>
             <p>Current Decibel Level: {decibelMetric.d ? decibelMetric.d.toFixed(2) : "N/A"} dB</p>
           </Box>
           <Box>
-            <h3>Accelerometer Data</h3>
+            <Typography variant='h6'>Accelerometer Data</Typography>
             <p>T: {accelerometerMetric.t ? accelerometerMetric.t.toFixed(2) : "N/A"}</p>
             <p>X: {accelerometerMetric.x ? accelerometerMetric.x.toFixed(2) : "N/A"}</p>
             <p>Y: {accelerometerMetric.y ? accelerometerMetric.y.toFixed(2) : "N/A"}</p>
@@ -210,7 +210,7 @@ function Acquisition() {
             <p>A: {accelerometerMetric.a ? accelerometerMetric.a.toFixed(2) : "N/A"}</p>
           </Box>
           <Box>
-            <h3>Gyroscope Data</h3>
+            <Typography variant='h6'>Gyroscope Data</Typography>
             <p>T: {gyroscopeMetric.t ? gyroscopeMetric.t.toFixed(2) : "N/A"}</p>
             <p>X: {gyroscopeMetric.x ? gyroscopeMetric.x.toFixed(2) : "N/A"}</p>
             <p>Y: {gyroscopeMetric.y ? gyroscopeMetric.y.toFixed(2) : "N/A"}</p>
@@ -219,42 +219,39 @@ function Acquisition() {
           </Box>
         </Container>
       </Paper>
-      <Paper>
+      <Paper sx={{ paddingTop: "16px", paddingBottom: "16px" }}>
         <Container>
           <Box>
-          <h3>Decibel Meter Graph ({decibelMetrics.length})</h3>
+            <Typography variant='h6'>Decibel Meter Graph ({decibelMetrics.length})</Typography>
             <LineChart
-              xAxis={[{ data: [startDate, endDate] }]}
+              dataset={decibelMetrics}
+              xAxis={[{ dataKey: "t" }]}
               series={[
-                {
-                  data: [decibelMetrics.map(metric => metric.d)]
-                },
+                { dataKey: "d"},
               ]}
               width={300}
               height={200}
             />
           </Box>
           <Box>
-          <h3>Accelerometer Graph ({accelerometerMetrics.length})</h3>
+            <Typography variant='h6'>Accelerometer Graph ({accelerometerMetrics.length})</Typography>
             <LineChart
-              xAxis={[{ data: [startDate, endDate] }]}
+              dataset={accelerometerMetrics}
+              xAxis={[{ dataKey: "t" }]}
               series={[
-                {
-                  data: [accelerometerMetrics.map(metric => metric.a)]
-                },
+                { dataKey: "a"},
               ]}
               width={300}
               height={200}
             />
           </Box>
           <Box>
-          <h3>Gyroscope Graph ({gyroscopeMetrics.length})</h3>
+            <Typography variant='h6'>Gyroscope Graph ({gyroscopeMetrics.length})</Typography>
             <LineChart
-              xAxis={[{ data: [startDate, endDate] }]}
+              dataset={gyroscopeMetrics}
+              xAxis={[{ dataKey: "t" }]}
               series={[
-                {
-                  data: [gyroscopeMetrics.map(metric => metric.a)]
-                },
+                { dataKey: "a"},
               ]}
               width={300}
               height={200}
