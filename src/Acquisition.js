@@ -51,22 +51,17 @@ function Acquisition() {
         accelerometer = new window.Accelerometer({ frequency: 10 });
         accelerometer.addEventListener("reading", () => {
           const now = Date.now()
-          setAccelerometerMetric({
+          const newMetric = {
             t: now,
             x: accelerometer.x,
             y: accelerometer.y,
             z: accelerometer.z,
             a: Math.sqrt(accelerometer.x ** 2 + accelerometer.y ** 2 + accelerometer.z ** 2),
-          });
+          }
+          setAccelerometerMetric(newMetric);
           setAccelerometerMetrics(prev => [
             ...prev,
-            {
-              t: now,
-              x: accelerometer.x,
-              y: accelerometer.y,
-              z: accelerometer.z,
-              a: Math.sqrt(accelerometer.x ** 2 + accelerometer.y ** 2 + accelerometer.z ** 2),
-            },
+            newMetric,
           ])
         });
         accelerometer.start();
@@ -109,22 +104,17 @@ function Acquisition() {
         gyroscope = new window.Gyroscope({ frequency: 10 });
         gyroscope.addEventListener("reading", () => {
           const now = Date.now()
-          setGyroscopeMetric({
+          const newMetric = {
             t: now,
             x: gyroscope.x,
             y: gyroscope.y,
             z: gyroscope.z,
             a: Math.sqrt(gyroscope.x ** 2 + gyroscope.y ** 2 + gyroscope.z ** 2),
-          });
+          }
+          setGyroscopeMetric(newMetric);
           setGyroscopeMetrics(prev => [
             ...prev,
-            {
-              t: now,
-              x: gyroscope.x,
-              y: gyroscope.y,
-              z: gyroscope.z,
-              a: Math.sqrt(gyroscope.x ** 2 + gyroscope.y ** 2 + gyroscope.z ** 2),
-            },
+            newMetric,
           ])
         });
         gyroscope.start();
@@ -182,7 +172,10 @@ function Acquisition() {
             d: decibel,
           });
 
-          setDecibelMetrics([...decibelMetrics, { t: timestamp, d: decibel }]);
+          setDecibelMetrics(prev => [
+            ...prev,
+            { t: timestamp, d: decibel },
+          ]);
         };
       } catch (error) {
         console.error(error);
@@ -214,6 +207,7 @@ function Acquisition() {
             <p>X: {accelerometerMetric.x ? accelerometerMetric.x.toFixed(2) : "N/A"}</p>
             <p>Y: {accelerometerMetric.y ? accelerometerMetric.y.toFixed(2) : "N/A"}</p>
             <p>Z: {accelerometerMetric.z ? accelerometerMetric.z.toFixed(2) : "N/A"}</p>
+            <p>A: {accelerometerMetric.a ? accelerometerMetric.a.toFixed(2) : "N/A"}</p>
           </Box>
           <Box>
             <h3>Gyroscope Data</h3>
@@ -221,6 +215,7 @@ function Acquisition() {
             <p>X: {gyroscopeMetric.x ? gyroscopeMetric.x.toFixed(2) : "N/A"}</p>
             <p>Y: {gyroscopeMetric.y ? gyroscopeMetric.y.toFixed(2) : "N/A"}</p>
             <p>Z: {gyroscopeMetric.z ? gyroscopeMetric.z.toFixed(2) : "N/A"}</p>
+            <p>A: {gyroscopeMetric.a ? gyroscopeMetric.a.toFixed(2) : "N/A"}</p>
           </Box>
         </Container>
       </Paper>
