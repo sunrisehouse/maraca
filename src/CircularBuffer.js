@@ -46,6 +46,10 @@ class CircularBuffer {
     }
   }
 
+  getHead() {
+    return this.head; 
+  }
+
   clear() {
     this.head = 0;
     this.tail = 0;
