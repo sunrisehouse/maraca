@@ -5,32 +5,23 @@ import { LineChart } from '@mui/x-charts';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { Download, PlayCircleFilled, RestartAlt, StopCircle } from '@mui/icons-material';
+import CircularBuffer from './CircularBuffer';
 
 
-const MAX_BUFFER_SIZE = 10000;
-const decibelBuffer = []
-const accelerometerBuffer = []
-const gyroscopeBuffer = []
+const decibelBuffer = new CircularBuffer(10000);
+const accelerometerBuffer = new CircularBuffer(1000);
+const gyroscopeBuffer = new CircularBuffer(1000);
 
 const addDecibelBuffer = (newData) => {
   decibelBuffer.push(newData);
-  if (decibelBuffer.length > MAX_BUFFER_SIZE) {
-    decibelBuffer.shift(); // 오래된 데이터를 삭제
-  }
 };
 
 const addAccelerometerBuffer = (newData) => {
   accelerometerBuffer.push(newData);
-  if (accelerometerBuffer.length > MAX_BUFFER_SIZE) {
-    accelerometerBuffer.shift(); // 오래된 데이터를 삭제
-  }
 };
 
 const addGyroscopeBuffer = (newData) => {
   gyroscopeBuffer.push(newData);
-  if (gyroscopeBuffer.length > MAX_BUFFER_SIZE) {
-    gyroscopeBuffer.shift(); // 오래된 데이터를 삭제
-  }
 };
 
 
@@ -211,37 +202,43 @@ function Acquisition() {
     const newIntervalId = setInterval(() => {
       setIntervalCount(prev => prev + 1);
       if (decibelBuffer.length > 0) {
-        const latestData = decibelBuffer[decibelBuffer.length - 1];
-        setDecibelMetrics((prevData) => [
-          ...prevData,
-          {t: latestData.t, d: latestData.d },
-        ]);
+        const latestData = decibelBuffer.getLast();
+        if (latestData) {
+          setDecibelMetrics((prevData) => [
+            ...prevData,
+            {t: latestData.t, d: latestData.d },
+          ]);
+        }
       }
       if (accelerometerBuffer.length > 0) {
-        const latestData = accelerometerBuffer[accelerometerBuffer.length - 1];
-        setDecibelMetrics((prevData) => [
-          ...prevData,
-          {
-            t: latestData.t,
-            x: latestData.x,
-            y: latestData.y,
-            z: latestData.z,
-            a: latestData.a,
-          },
-        ]);
+        const latestData = accelerometerBuffer.getLast();
+        if (latestData) {
+          setAccelerometerMetrics((prevData) => [
+            ...prevData,
+            {
+              t: latestData.t,
+              x: latestData.x,
+              y: latestData.y,
+              z: latestData.z,
+              a: latestData.a,
+            },
+          ]);
+        }
       }
       if (gyroscopeBuffer.length > 0) {
-        const latestData = gyroscopeBuffer[gyroscopeBuffer.length - 1];
-        setDecibelMetrics((prevData) => [
-          ...prevData,
-          {
-            t: latestData.t,
-            x: latestData.x,
-            y: latestData.y,
-            z: latestData.z,
-            a: latestData.a,
-          },
-        ]);
+        const latestData = gyroscopeBuffer.getLast();
+        if (latestData) {
+          setDecibelMetrics((prevData) => [
+            ...prevData,
+            {
+              t: latestData.t,
+              x: latestData.x,
+              y: latestData.y,
+              z: latestData.z,
+              a: latestData.a,
+            },
+          ]);
+        }
       }
     }, intervalTime);
     
