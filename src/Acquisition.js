@@ -201,44 +201,38 @@ function Acquisition() {
   const initInterval = () => {
     const newIntervalId = setInterval(() => {
       setIntervalCount(prev => prev + 1);
-      if (decibelBuffer.length > 0) {
-        const latestData = decibelBuffer.getLast();
-        if (latestData) {
-          setDecibelMetrics((prevData) => [
-            ...prevData,
-            {t: latestData.t, d: latestData.d },
-          ]);
-        }
+      const decibelData = decibelBuffer.getLast();
+      if (decibelData) {
+        setDecibelMetrics((prevData) => [
+          ...prevData,
+          {t: decibelData.t, d: decibelData.d },
+        ]);
       }
-      if (accelerometerBuffer.length > 0) {
-        const latestData = accelerometerBuffer.getLast();
-        if (latestData) {
-          setAccelerometerMetrics((prevData) => [
-            ...prevData,
-            {
-              t: latestData.t,
-              x: latestData.x,
-              y: latestData.y,
-              z: latestData.z,
-              a: latestData.a,
-            },
-          ]);
-        }
+      const accelData = accelerometerBuffer.getLast();
+      if (accelData) {
+        setAccelerometerMetrics((prevData) => [
+          ...prevData,
+          {
+            t: accelData.t,
+            x: accelData.x,
+            y: accelData.y,
+            z: accelData.z,
+            a: accelData.a,
+          },
+        ]);
       }
-      if (gyroscopeBuffer.length > 0) {
-        const latestData = gyroscopeBuffer.getLast();
-        if (latestData) {
-          setDecibelMetrics((prevData) => [
-            ...prevData,
-            {
-              t: latestData.t,
-              x: latestData.x,
-              y: latestData.y,
-              z: latestData.z,
-              a: latestData.a,
-            },
-          ]);
-        }
+      const gyroData = gyroscopeBuffer.getLast();
+      if (gyroData) {
+        setDecibelMetrics((prevData) => [
+          ...prevData,
+          {
+            t: gyroData.t,
+            x: gyroData.x,
+            y: gyroData.y,
+            z: gyroData.z,
+            a: gyroData.a,
+          },
+        ]);
       }
     }, intervalTime);
     
