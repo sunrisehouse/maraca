@@ -21,6 +21,8 @@ function Acquisition() {
   const [gyroscopeBuffer, setGyroscopeBuffer] = useState([]);
   const [gyroscopeMetrics, setGyroscopeMetrics] = useState([]);
 
+  const [intervalCount, setIntervalCount] = useState(0);
+
   const intervalTime = 1000;
 
   useEffect(() => {
@@ -191,6 +193,7 @@ function Acquisition() {
 
   const initInterval = () => {
     const newIntervalId = setInterval(() => {
+      setIntervalCount(prev => prev + 1);
       if (decibelBuffer.length > 0) {
         const latestData = decibelBuffer[decibelBuffer.length - 1];
         setDecibelMetrics((prevData) => [
@@ -213,7 +216,6 @@ function Acquisition() {
       }
       if (gyroscopeBuffer.length > 0) {
         const latestData = gyroscopeBuffer[gyroscopeBuffer.length - 1];
-
         setDecibelMetrics((prevData) => [
           ...prevData,
           {
@@ -357,6 +359,9 @@ function Acquisition() {
       </Paper>
       <Paper>
         <Container>
+          <Box>
+            <Typography variant='h6'>Interval Count ({intervalCount})</Typography>
+          </Box>
           <Box>
             <Typography variant='h6'>Decibel Meter Data</Typography>
             <p>Measurement Time: {decibelMetric.t ? decibelMetric.t.toFixed(2) : "N/A"}</p>
