@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { LineChart } from '@mui/x-charts';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
+import { Download, PlayCircleFilled, RestartAlt, StopCircle } from '@mui/icons-material';
 
 function Acquisition() {
   const [audioContext, setAudioContext] = useState(null);
@@ -11,11 +12,16 @@ function Acquisition() {
   const [accelerometer, setAccelerometer] = useState(null);
   const [gyroscope, setGyroscope] = useState(null);
   const [isMeasuring, setIsMeasuring] = useState(false);
-  // const [intervalId, setIntervalId] = useState(null);
+  const [intervalId, setIntervalId] = useState(null);
 
+  const [decibelBuffer, setDecibelBuffer] = useState([]);
   const [decibelMetrics, setDecibelMetrics] = useState([]);
+  const [accelerometerBuffer, setAccelerometerBuffer] = useState([]);
   const [accelerometerMetrics, setAccelerometerMetrics] = useState([]);
+  const [gyroscopeBuffer, setGyroscopeBuffer] = useState([]);
   const [gyroscopeMetrics, setGyroscopeMetrics] = useState([]);
+
+  const intervalTime = 1000;
 
   useEffect(() => {
     let accel = null;
@@ -43,7 +49,7 @@ function Acquisition() {
             z: accel.z,
             a: Math.sqrt(accel.x ** 2 + accel.y ** 2 + accel.z ** 2),
           }
-          setAccelerometerMetrics(prev => [
+          setAccelerometerBuffer(prev => [
             ...prev,
             newMetric,
           ])
@@ -95,7 +101,7 @@ function Acquisition() {
             z: gyro.z,
             a: Math.sqrt(gyro.x ** 2 + gyro.y ** 2 + gyro.z ** 2),
           }
-          setGyroscopeMetrics(prev => [
+          setGyroscopeBuffer(prev => [
             ...prev,
             newMetric,
           ])
@@ -148,12 +154,12 @@ function Acquisition() {
           t: Date.now(),
           d: decibel,
         }
-        setDecibelMetrics(prev => [
+        setDecibelBuffer(prev => [
           ...prev,
           newMetric,
         ]);
       };
-      
+
       setAudioContext(audioCtx);
       setAudioWorkletNode(audioNode);
     } catch (error) {
@@ -183,23 +189,74 @@ function Acquisition() {
     };
   }, [audioContext]);
 
-  const startMeasurement = useCallback(() => {
+  const initInterval = () => {
+    const newIntervalId = setInterval(() => {
+      if (decibelBuffer.length > 0) {
+        const latestData = decibelBuffer[decibelBuffer.length - 1];
+        setDecibelMetrics((prevData) => [
+          ...prevData,
+          {t: latestData.t, d: latestData.d },
+        ]);
+      }
+      if (accelerometerBuffer.length > 0) {
+        const latestData = accelerometerBuffer[accelerometerBuffer.length - 1];
+        setDecibelMetrics((prevData) => [
+          ...prevData,
+          {
+            t: latestData.t,
+            x: latestData.x,
+            y: latestData.y,
+            z: latestData.z,
+            a: latestData.a,
+          },
+        ]);
+      }
+      if (gyroscopeBuffer.length > 0) {
+        const latestData = gyroscopeBuffer[gyroscopeBuffer.length - 1];
+
+        setDecibelMetrics((prevData) => [
+          ...prevData,
+          {
+            t: latestData.t,
+            x: latestData.x,
+            y: latestData.y,
+            z: latestData.z,
+            a: latestData.a,
+          },
+        ]);
+      }
+    }, intervalTime);
+    
+    setIntervalId(newIntervalId);
+  };
+
+  const destroyInterval = useCallback(() => {
+    clearInterval(intervalId);
+    setIntervalId(null);
+  }, [intervalId]);
+
+  const startMeasurement = () => {
     initAudio();
     if (accelerometer) accelerometer.start();
     if (gyroscope) gyroscope.start();
+    initInterval();
     setIsMeasuring(true);
-  }, [initAudio, accelerometer, gyroscope]);
+  };
 
   const stopMeasurement = useCallback(() => {
     destroyAudio();
     if (accelerometer) accelerometer.stop();
     if (gyroscope) gyroscope.stop();
+    destroyInterval();
     setIsMeasuring(false);
-  }, [destroyAudio, accelerometer, gyroscope]);
+  }, [destroyAudio, accelerometer, gyroscope, destroyInterval]);
 
   const handleReset = useCallback(() => {
+    setAccelerometerBuffer([]);
     setAccelerometerMetrics([]);
+    setGyroscopeBuffer([]);
     setGyroscopeMetrics([]);
+    setDecibelMetrics([]);
     setDecibelMetrics([]);
   }, []);
 
@@ -272,28 +329,26 @@ function Acquisition() {
           <ButtonGroup>
             <Button
               variant="contained"
-              onClick={startMeasurement}
-              disabled={isMeasuring}
+              onClick={isMeasuring ? stopMeasurement : startMeasurement}
+              startIcon={isMeasuring ? <StopCircle /> : <PlayCircleFilled /> }
+              color={isMeasuring ? "secondary" : "primary"}
+              sx={{ width: "100px" }}
             >
-              start
-            </Button>
-            <Button
-              variant="contained"
-              onClick={stopMeasurement}
-              disabled={!isMeasuring}
-            >
-              stop
+              {isMeasuring ? "stop " : "start"}
             </Button>
             <Button
               variant="contained"
               onClick={handleReset}
               disabled={isMeasuring}
+              startIcon={<RestartAlt />}
             >
               reset
             </Button>
             <Button
               variant="contained"
               onClick={handleExportFiles}
+              disabled={isMeasuring}
+              startIcon={<Download />}
             >
               save
             </Button>
