@@ -261,8 +261,8 @@ function Acquisition() {
   }, [destroyAudio, accelerometer, gyroscope, destroyInterval]);
 
   const handleReset = useCallback(() => {
+    setAccelerometerMetrics([]);
     setGyroscopeMetrics([]);
-    setDecibelMetrics([]);
     setDecibelMetrics([]);
   }, []);
 
@@ -363,9 +363,9 @@ function Acquisition() {
       </Paper>
       <Paper>
         <Container>
-          <Box>
+          {/* <Box>
             <Typography variant='h6'>Time: ({intervalCount}) ({decibelBuffer.getHead()}) ({accelerometerBuffer.getHead()}) ({gyroscopeBuffer.getHead()})</Typography>
-          </Box>
+          </Box> */}
           <Box>
             <Typography variant='h6'>Decibel Meter Data</Typography>
             <p>Measurement Time: {decibelMetric.t ? decibelMetric.t.toFixed(2) : "N/A"}</p>
