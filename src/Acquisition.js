@@ -6,6 +6,34 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import { Download, PlayCircleFilled, RestartAlt, StopCircle } from '@mui/icons-material';
 
+
+const MAX_BUFFER_SIZE = 10000;
+const decibelBuffer = []
+const accelerometerBuffer = []
+const gyroscopeBuffer = []
+
+const addDecibelBuffer = (newData) => {
+  decibelBuffer.push(newData);
+  if (decibelBuffer.length > MAX_BUFFER_SIZE) {
+    decibelBuffer.shift(); // 오래된 데이터를 삭제
+  }
+};
+
+const addAccelerometerBuffer = (newData) => {
+  accelerometerBuffer.push(newData);
+  if (accelerometerBuffer.length > MAX_BUFFER_SIZE) {
+    accelerometerBuffer.shift(); // 오래된 데이터를 삭제
+  }
+};
+
+const addGyroscopeBuffer = (newData) => {
+  gyroscopeBuffer.push(newData);
+  if (gyroscopeBuffer.length > MAX_BUFFER_SIZE) {
+    gyroscopeBuffer.shift(); // 오래된 데이터를 삭제
+  }
+};
+
+
 function Acquisition() {
   const [audioContext, setAudioContext] = useState(null);
   const [audioWorkletNode, setAudioWorkletNode] = useState(null);
@@ -14,11 +42,8 @@ function Acquisition() {
   const [isMeasuring, setIsMeasuring] = useState(false);
   const [intervalId, setIntervalId] = useState(null);
 
-  const [decibelBuffer, setDecibelBuffer] = useState([]);
   const [decibelMetrics, setDecibelMetrics] = useState([]);
-  const [accelerometerBuffer, setAccelerometerBuffer] = useState([]);
   const [accelerometerMetrics, setAccelerometerMetrics] = useState([]);
-  const [gyroscopeBuffer, setGyroscopeBuffer] = useState([]);
   const [gyroscopeMetrics, setGyroscopeMetrics] = useState([]);
 
   const [intervalCount, setIntervalCount] = useState(0);
@@ -51,10 +76,7 @@ function Acquisition() {
             z: accel.z,
             a: Math.sqrt(accel.x ** 2 + accel.y ** 2 + accel.z ** 2),
           }
-          setAccelerometerBuffer(prev => [
-            ...prev,
-            newMetric,
-          ])
+          addAccelerometerBuffer(newMetric);
         });
         setAccelerometer(accel);
       } catch (error) {
@@ -103,10 +125,7 @@ function Acquisition() {
             z: gyro.z,
             a: Math.sqrt(gyro.x ** 2 + gyro.y ** 2 + gyro.z ** 2),
           }
-          setGyroscopeBuffer(prev => [
-            ...prev,
-            newMetric,
-          ])
+          addGyroscopeBuffer(newMetric);
         });
         setGyroscope(gyro);
       } catch (error) {
@@ -156,10 +175,7 @@ function Acquisition() {
           t: Date.now(),
           d: decibel,
         }
-        setDecibelBuffer(prev => [
-          ...prev,
-          newMetric,
-        ]);
+        addDecibelBuffer(newMetric);
       };
 
       setAudioContext(audioCtx);
@@ -254,9 +270,6 @@ function Acquisition() {
   }, [destroyAudio, accelerometer, gyroscope, destroyInterval]);
 
   const handleReset = useCallback(() => {
-    setAccelerometerBuffer([]);
-    setAccelerometerMetrics([]);
-    setGyroscopeBuffer([]);
     setGyroscopeMetrics([]);
     setDecibelMetrics([]);
     setDecibelMetrics([]);
