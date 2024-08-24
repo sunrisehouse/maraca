@@ -266,26 +266,28 @@ function Acquisition() {
     setDecibelMetrics([]);
   }, []);
 
-  const handleExportFiles = () => {
+  const handleSave = () => {
     // Decibel 데이터를 배열 형식으로 변환
     const decibelData = decibelMetrics.map(metric => ({
-      Timestamp: new Date(metric.timestamp).toLocaleString(),
-      Decibel: metric.decibel,
+      Timestamp: new Date(metric.t).toLocaleString(),
+      Decibel: metric.d,
     }));
     
     // Accelerometer 데이터를 배열 형식으로 변환
     const accelData = accelerometerMetrics.map(metric => ({
-      Timestamp: new Date(metric.timestamp).toLocaleString(),
-      AccelX: metric.accelX,
-      AccelY: metric.accelY,
-      AccelZ: metric.accelZ,
+      Timestamp: new Date(metric.t).toLocaleString(),
+      AccelX: metric.x,
+      AccelY: metric.y,
+      AccelZ: metric.z,
+      "Linear Acceleration": metric.a,
     }));
 
     const gyroData = gyroscopeMetrics.map(metric => ({
-      Timestamp: new Date(metric.timestamp).toLocaleString(),
-      GyroX: metric.accelX,
-      GyroY: metric.accelY,
-      GyroZ: metric.accelZ,
+      Timestamp: new Date(metric.t).toLocaleString(),
+      GyroX: metric.x,
+      GyroY: metric.y,
+      GyroZ: metric.z,
+      "Angular Acceleration": metric.a,
     }));
 
     // 두 개의 워크시트로 데이터를 추가
@@ -352,7 +354,7 @@ function Acquisition() {
             </Button>
             <Button
               variant="contained"
-              onClick={handleExportFiles}
+              onClick={handleSave}
               disabled={isMeasuring}
               startIcon={<Download />}
             >
