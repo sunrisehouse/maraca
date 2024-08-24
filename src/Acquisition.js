@@ -12,11 +12,10 @@ const decibelBuffer = new CircularBuffer(10000);
 const accelerometerBuffer = new CircularBuffer(1000);
 const gyroscopeBuffer = new CircularBuffer(1000);
 
-let audioContext = null;
 const initAudio = async () => {
   try {
     // 오디오 컨텍스트 생성
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
   
     // 오디오 워크렛 모듈을 추가 (my-processor.js)
     await audioContext.audioWorklet.addModule('/maraca/build/audio-processor.js');
@@ -42,11 +41,12 @@ const initAudio = async () => {
       }
       decibelBuffer.push(newMetric);
     };
+    return { audioContext }
   } catch (error) {
     console.error(error);
   }
+  return null;
 }
-initAudio();
 
 let accelerometer = null;
 const initAccelerometer = async () => {
@@ -63,7 +63,7 @@ const initAccelerometer = async () => {
   }
 
   try {
-    accelerometer = new window.Accelerometer({ frequency: 10 });
+    const accelerometer = new window.Accelerometer({ frequency: 10 });
     accelerometer.addEventListener("reading", () => {
       const now = Date.now()
       const newMetric = {
@@ -76,6 +76,7 @@ const initAccelerometer = async () => {
       accelerometerBuffer.push(newMetric);
     });
     accelerometer.start();
+    return { accelerometer }
   } catch (error) {
     if (error.name === 'SecurityError') {
       alert('Sensor construction was blocked by the Permissions Policy.');
@@ -85,10 +86,9 @@ const initAccelerometer = async () => {
       alert(`${error.name} ${error.message}`);
     }
   }
+  return null;
 }
-initAccelerometer();
 
-let gyroscope = null;
 const initGyroscope = async () => {
   const gyroPermissionResult = await navigator.permissions.query({ name: "gyroscope" });
   
@@ -103,7 +103,7 @@ const initGyroscope = async () => {
   }
 
   try {
-    gyroscope = new window.Gyroscope({ frequency: 10 });
+    const gyroscope = new window.Gyroscope({ frequency: 10 });
     gyroscope.addEventListener("reading", () => {
       const now = Date.now()
       const newMetric = {
@@ -114,8 +114,9 @@ const initGyroscope = async () => {
         a: Math.sqrt(gyroscope.x ** 2 + gyroscope.y ** 2 + gyroscope.z ** 2),
       }
       gyroscopeBuffer.push(newMetric);
-      gyroscope.start();
     });
+    gyroscope.start();
+    return { gyroscope }
   } catch (error) {
     if (error.name === 'SecurityError') {
       alert('Sensor construction was blocked by the Permissions Policy.');
@@ -125,8 +126,8 @@ const initGyroscope = async () => {
       alert(`${error.name} ${error.message}`);
     }
   }
+  return null;
 };
-initGyroscope();
 
 const saveExcelFile = (decibelMetrics, accelerometerMetrics, gyroscopeMetrics) => {
   // Decibel 데이터를 배열 형식으로 변환
@@ -190,12 +191,15 @@ function Acquisition() {
   const [isTMaxRunReached, setIsTMaxRunReached] = useState(false);
 
   useEffect(() => {
+    const { audioContext } = initAudio() || { audioContext: null };
+    const { accelerometer } = initAccelerometer() || { accelerometer: null };
+    const { gyroscope } = initGyroscope() || { gyroscope: null };
     return () => {
       if (accelerometer) accelerometer.stop();
       if (gyroscope) gyroscope.stop();
       if (audioContext && audioContext.state !== "closed") audioContext.close();
     };
-  }, [accelerometer, gyroscope, audioContext]);
+  }, []);
 
   const setFetchMetricsInterval = () => {
     setIntervalId(setInterval(() => {
@@ -342,7 +346,7 @@ function Acquisition() {
       <Paper>
         <Container>
           <Box>
-            <Typography variant='h6'>Decibel Meter Graph ({decibelMetrics.length})</Typography>
+            <Typography variant='h6'>Decibel Meter Graph ({decibelMetrics.length}/{decibelBuffer.getHead()})</Typography>
             <LineChart
               dataset={decibelMetrics}
               xAxis={[{ dataKey: "t" }]}
@@ -354,7 +358,7 @@ function Acquisition() {
             />
           </Box>
           <Box>
-            <Typography variant='h6'>Accelerometer Graph ({accelerometerMetrics.length})</Typography>
+            <Typography variant='h6'>Accelerometer Graph ({accelerometerMetrics.length}/{accelerometerBuffer.getHead()})</Typography>
             <LineChart
               dataset={accelerometerMetrics}
               xAxis={[{ dataKey: "t" }]}
@@ -366,7 +370,7 @@ function Acquisition() {
             />
           </Box>
           <Box>
-            <Typography variant='h6'>Gyroscope Graph ({gyroscopeMetrics.length})</Typography>
+            <Typography variant='h6'>Gyroscope Graph ({gyroscopeMetrics.length}/{gyroscopeBuffer.getHead()})</Typography>
             <LineChart
               dataset={gyroscopeMetrics}
               xAxis={[{ dataKey: "t" }]}
