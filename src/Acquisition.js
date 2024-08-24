@@ -48,7 +48,6 @@ const initAudio = async () => {
   return null;
 }
 
-let accelerometer = null;
 const initAccelerometer = async () => {
   const accPermissionResult = await navigator.permissions.query({ name: "accelerometer" });
   
@@ -175,6 +174,9 @@ function Acquisition() {
   const [isMeasuring, setIsMeasuring] = useState(false);
   const [fetchMetricsIntervalId, setFetchMetricsIntervalId] = useState(null);
   const [maxRunTimeoutId, setMaxRunTimeoutId] = useState(null);
+  const [audioContext, setAudioContext] = useState(null);
+  const [accelerometer, setAccelerometer] = useState(null);
+  const [gyroscope, setGyroscope] = useState(null);
 
   const [decibelMetrics, setDecibelMetrics] = useState([]);
   const [accelerometerMetrics, setAccelerometerMetrics] = useState([]);
@@ -191,15 +193,43 @@ function Acquisition() {
   const [isTMaxRunReached, setIsTMaxRunReached] = useState(false);
 
   useEffect(() => {
-    const { audioContext } = initAudio() || { audioContext: null };
-    const { accelerometer } = initAccelerometer() || { accelerometer: null };
-    const { gyroscope } = initGyroscope() || { gyroscope: null };
-    return () => {
-      if (accelerometer) accelerometer.stop();
-      if (gyroscope) gyroscope.stop();
-      if (audioContext && audioContext.state !== "closed") audioContext.close();
-    };
+    const initAudioContext = async () => {
+      const { audioContext: sensor } = await initAudio() || { audioContext: null };
+      setAudioContext(sensor)
+    }
+    const initAccel = async () => {
+      const { accelerometer: sensor } = await initAccelerometer() || { accelerometer: null };
+      setAccelerometer(sensor)
+    }
+    const initGyro = async () => {
+      const { gyroscope: sensor } = await initGyroscope() || { gyroscope: null };
+      setGyroscope(sensor);
+    }
+    initAudioContext();
+    initAccel();
+    initGyro();
   }, []);
+
+  const destroyAllSensors = useCallback(() => {
+    setAudioContext(ac => {
+      if (ac) ac.close();
+      return null;
+    });
+    setAccelerometer(am => {
+      if (am) am.stop();
+      return null;
+    })
+    setGyroscope(gy => {
+      if (gy) gy.stop();
+      return null;
+    })
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      destroyAllSensors();
+    }
+  }, [])
 
   const setFetchMetricsInterval = () => {
     setFetchMetricsIntervalId(setInterval(() => {
@@ -256,6 +286,7 @@ function Acquisition() {
     setMaxRunTimeoutId(setTimeout(() => {
       setIsTMaxRunReached(true);
       stopMeasurement();
+      destroyAllSensors();
     }, time));
   };
 
