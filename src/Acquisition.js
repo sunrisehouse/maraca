@@ -213,7 +213,7 @@ function Acquisition() {
     if (accelerometer) accelerometer.stop();
     if (gyroscope) gyroscope.stop();
     setIsMeasuring(false);
-  }, []);
+  }, [audioContext, accelerometer, gyroscope]);
 
   const handleExportFiles = () => {
     // Decibel 데이터를 배열 형식으로 변환
