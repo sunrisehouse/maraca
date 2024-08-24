@@ -1,9 +1,18 @@
 import './Acquisition.css';
-import { Box, Container, Paper, Typography } from '@mui/material';
+import { Box, Button, ButtonGroup, Container, Paper, Typography } from '@mui/material';
 import { useEffect, useMemo, useState } from 'react';
 import { LineChart } from '@mui/x-charts';
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 function Acquisition() {
+  const [audioContext, setAudioContext] = useState(null);
+  const [audioWorkletNode, setAudioWorkletNode] = useState(null);
+  const [accelerometer, setAccelerometer] = useState(null);
+  const [gyroscope, setGyroscope] = useState(null);
+  const [isMeasuring, setIsMeasuring] = useState(false);
+  const [intervalId, setIntervalId] = useState(null);
+
   const startDate = useMemo(() => {
     return Date.now();
   }, []);
@@ -33,7 +42,7 @@ function Acquisition() {
   });
 
   useEffect(() => {
-    let accelerometer = null;
+    let accel = null;
     const init = async () => {
       const accPermissionResult = await navigator.permissions.query({ name: "accelerometer" });
       
@@ -48,15 +57,15 @@ function Acquisition() {
       }
 
       try {
-        accelerometer = new window.Accelerometer({ frequency: 10 });
-        accelerometer.addEventListener("reading", () => {
+        accel = new window.Accelerometer({ frequency: 10 });
+        accel.addEventListener("reading", () => {
           const now = Date.now()
           const newMetric = {
             t: now,
-            x: accelerometer.x,
-            y: accelerometer.y,
-            z: accelerometer.z,
-            a: Math.sqrt(accelerometer.x ** 2 + accelerometer.y ** 2 + accelerometer.z ** 2),
+            x: accel.x,
+            y: accel.y,
+            z: accel.z,
+            a: Math.sqrt(accel.x ** 2 + accel.y ** 2 + accel.z ** 2),
           }
           setAccelerometerMetric(newMetric);
           setAccelerometerMetrics(prev => [
@@ -64,7 +73,7 @@ function Acquisition() {
             newMetric,
           ])
         });
-        accelerometer.start();
+        setAccelerometer(accel);
       } catch (error) {
         if (error.name === 'SecurityError') {
           alert('Sensor construction was blocked by the Permissions Policy.');
@@ -79,14 +88,14 @@ function Acquisition() {
     init();
 
     return () => {
-      if (accelerometer) {
-        accelerometer.stop();
+      if (accel) {
+        accel.stop();
       }
     };
   }, []);
 
   useEffect(() => {
-    let gyroscope = null;
+    let gyro = null;
     const init = async () => {
       const gyroPermissionResult = await navigator.permissions.query({ name: "gyroscope" });
       
@@ -101,15 +110,15 @@ function Acquisition() {
       }
   
       try {
-        gyroscope = new window.Gyroscope({ frequency: 10 });
-        gyroscope.addEventListener("reading", () => {
+        gyro = new window.Gyroscope({ frequency: 10 });
+        gyro.addEventListener("reading", () => {
           const now = Date.now()
           const newMetric = {
             t: now,
-            x: gyroscope.x,
-            y: gyroscope.y,
-            z: gyroscope.z,
-            a: Math.sqrt(gyroscope.x ** 2 + gyroscope.y ** 2 + gyroscope.z ** 2),
+            x: gyro.x,
+            y: gyro.y,
+            z: gyro.z,
+            a: Math.sqrt(gyro.x ** 2 + gyro.y ** 2 + gyro.z ** 2),
           }
           setGyroscopeMetric(newMetric);
           setGyroscopeMetrics(prev => [
@@ -117,7 +126,7 @@ function Acquisition() {
             newMetric,
           ])
         });
-        gyroscope.start();
+        setGyroscope(gyro);
       } catch (error) {
         if (error.name === 'SecurityError') {
           alert('Sensor construction was blocked by the Permissions Policy.');
@@ -132,39 +141,39 @@ function Acquisition() {
     init();
 
     return () => {
-      if (gyroscope) {
-        gyroscope.stop();
+      if (gyro) {
+        gyro.stop();
       }
     };
   }, []);
 
   useEffect(() => {
-    let audioContext;
-    let audioWorkletNode;
+    let audioCtx;
+    let audioNode;
 
     const initAudio = async () => {
       try {
         // 오디오 컨텍스트 생성
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
         // 오디오 워크렛 모듈을 추가 (my-processor.js)
-        await audioContext.audioWorklet.addModule('/maraca/build/audio-processor.js');
+        await audioCtx.audioWorklet.addModule('/maraca/build/audio-processor.js');
 
         // AudioWorkletNode 생성
-        audioWorkletNode = new AudioWorkletNode(audioContext, 'audio-processor');
+        audioNode = new AudioWorkletNode(audioCtx, 'audio-processor');
 
         // 사용자로부터 마이크 접근 권한 요청
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
         // 마이크 스트림 생성
-        const microphone = audioContext.createMediaStreamSource(stream);
+        const microphone = audioCtx.createMediaStreamSource(stream);
 
         // 마이크 -> AudioWorkletNode -> 출력
-        microphone.connect(audioWorkletNode);
-        audioWorkletNode.connect(audioContext.destination);
+        microphone.connect(audioNode);
+        audioNode.connect(audioCtx.destination);
 
         // 오디오 데이터를 처리하기 위한 메시지 핸들러
-        audioWorkletNode.port.onmessage = (event) => {
+        audioNode.port.onmessage = (event) => {
           const { decibel, timestamp } = event.data;
 
           setDecibelMetric({
@@ -177,6 +186,8 @@ function Acquisition() {
             { t: timestamp, d: decibel },
           ]);
         };
+        setAudioContext(audioCtx);
+        setAudioWorkletNode(audioNode);
       } catch (error) {
         console.error(error);
       }
@@ -186,15 +197,109 @@ function Acquisition() {
 
     // 컴포넌트 언마운트 시 리소스 정리
     return () => {
-      if (audioContext) {
-        audioContext.close();
+      if (audioCtx) {
+        audioCtx.close();
       }
     };
   }, []);
 
+  const startMeasurement = () => {
+    if (audioContext && accelerometer) {
+      audioContext.resume();
+      accelerometer.start();
+      // setIntervalId(newIntervalId);
+      setIsMeasuring(true);
+    }
+  };
+
+  const stopMeasurement = () => {
+    if (audioContext && accelerometer) {
+      audioContext.suspend();
+      accelerometer.stop();
+      // clearInterval(intervalId);
+      setIsMeasuring(false);
+    }
+  };
+
+  const handleExportFiles = () => {
+    // Decibel 데이터를 배열 형식으로 변환
+    const decibelData = decibelMetrics.map(metric => ({
+      Timestamp: new Date(metric.timestamp).toLocaleString(),
+      Decibel: metric.decibel,
+    }));
+    
+    // Accelerometer 데이터를 배열 형식으로 변환
+    const accelData = accelerometerMetrics.map(metric => ({
+      Timestamp: new Date(metric.timestamp).toLocaleString(),
+      AccelX: metric.accelX,
+      AccelY: metric.accelY,
+      AccelZ: metric.accelZ,
+    }));
+
+    const gyroData = gyroscopeMetrics.map(metric => ({
+      Timestamp: new Date(metric.timestamp).toLocaleString(),
+      GyroX: metric.accelX,
+      GyroY: metric.accelY,
+      GyroZ: metric.accelZ,
+    }));
+
+    // 두 개의 워크시트로 데이터를 추가
+    const wb = XLSX.utils.book_new();
+    const wsDecibel = XLSX.utils.json_to_sheet(decibelData);
+    const wsAccel = XLSX.utils.json_to_sheet(accelData);
+    const wsGyro = XLSX.utils.json_to_sheet(gyroData);
+
+    XLSX.utils.book_append_sheet(wb, wsDecibel, "Decibel Data");
+    XLSX.utils.book_append_sheet(wb, wsAccel, "Accelerometer Data");
+    XLSX.utils.book_append_sheet(wb, wsAccel, "Gyroscope Data");
+
+    // Excel 파일로 변환
+    const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+
+    // 파일 저장
+    const blob = new Blob([wbout], { type: "application/octet-stream" });
+    saveAs(blob, "sensor_data.xlsx");
+  }
+
   return (
-    <Container maxWidth="sm" sx={{ paddingTop: "20px", paddingBottom: "20px" }}>
-      <Paper sx={{ paddingTop: "16px", paddingBottom: "16px" }}>
+    <Container
+      maxWidth="sm"
+      sx={{
+        paddingBottom: "20px",
+        '& .MuiPaper-root': {
+          paddingTop: "16px",
+          paddingBottom: "16px",
+          marginTop: '20px',
+        },
+      }}
+    >
+      <Paper>
+        <Container>
+          <ButtonGroup>
+            <Button
+              variant="contained"
+              onClick={startMeasurement}
+              disabled={isMeasuring}
+            >
+              start
+            </Button>
+            <Button
+              variant="contained"
+              onClick={stopMeasurement}
+              disabled={!isMeasuring}
+            >
+              stop
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleExportFiles}
+            >
+              save
+            </Button>
+          </ButtonGroup>
+        </Container>
+      </Paper>
+      <Paper>
         <Container>
           <Box>
             <Typography variant='h6'>Decibel Meter Data</Typography>
@@ -219,7 +324,7 @@ function Acquisition() {
           </Box>
         </Container>
       </Paper>
-      <Paper sx={{ paddingTop: "16px", paddingBottom: "16px" }}>
+      <Paper>
         <Container>
           <Box>
             <Typography variant='h6'>Decibel Meter Graph ({decibelMetrics.length})</Typography>
