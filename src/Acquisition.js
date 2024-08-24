@@ -221,6 +221,12 @@ function Acquisition() {
     setIsMeasuring(false);
   }, [destroyAudio, accelerometer, gyroscope]);
 
+  const handleReset = useCallback(() => {
+    setAccelerometerMetrics([]);
+    setGyroscopeMetrics([]);
+    setDecibelMetrics([]);
+  }, []);
+
   const handleExportFiles = () => {
     // Decibel 데이터를 배열 형식으로 변환
     const decibelData = decibelMetrics.map(metric => ({
@@ -289,6 +295,13 @@ function Acquisition() {
               disabled={!isMeasuring}
             >
               stop
+            </Button>
+            <Button
+              variant="contained"
+              onClick={handleReset}
+              disabled={isMeasuring}
+            >
+              reset
             </Button>
             <Button
               variant="contained"
