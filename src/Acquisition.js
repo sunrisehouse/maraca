@@ -184,9 +184,6 @@ function Acquisition() {
   }, [audioContext]);
 
   const startMeasurement = useCallback(() => {
-    setAccelerometerMetrics([]);
-    setGyroscopeMetrics([]);
-    setDecibelMetrics([]);
     initAudio();
     if (accelerometer) accelerometer.start();
     if (gyroscope) gyroscope.start();
