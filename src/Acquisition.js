@@ -207,6 +207,7 @@ function Acquisition() {
     if (audioContext && accelerometer) {
       audioContext.resume();
       accelerometer.start();
+      gyroscope.start();
       // setIntervalId(newIntervalId);
       setIsMeasuring(true);
     }
@@ -214,8 +215,9 @@ function Acquisition() {
 
   const stopMeasurement = () => {
     if (audioContext && accelerometer) {
-      audioContext.suspend();
+      audioContext.close();
       accelerometer.stop();
+      gyroscope.stop();
       // clearInterval(intervalId);
       setIsMeasuring(false);
     }
