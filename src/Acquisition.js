@@ -173,7 +173,7 @@ const saveExcelFile = (decibelMetrics, accelerometerMetrics, gyroscopeMetrics) =
 
 function Acquisition() {
   const [isMeasuring, setIsMeasuring] = useState(false);
-  const [intervalId, setIntervalId] = useState(null);
+  const [fetchMetricsIntervalId, setFetchMetricsIntervalId] = useState(null);
   const [maxRunTimeoutId, setMaxRunTimeoutId] = useState(null);
 
   const [decibelMetrics, setDecibelMetrics] = useState([]);
@@ -202,7 +202,7 @@ function Acquisition() {
   }, []);
 
   const setFetchMetricsInterval = () => {
-    setIntervalId(setInterval(() => {
+    setFetchMetricsIntervalId(setInterval(() => {
       const decibelData = decibelBuffer.getLast();
       if (decibelData) {
         setDecibelMetrics((prevData) => [
@@ -239,6 +239,19 @@ function Acquisition() {
     }, tInterval));
   };
 
+  const stopMeasurement = () => {
+    setFetchMetricsIntervalId(prev => {
+      if (prev) clearInterval(prev);
+      return null;
+    });
+    setMaxRunTimeoutId(prev => {
+      if (prev) clearTimeout(prev);
+      return null;
+    })
+    setRemainingTime(prev => prev - (Date.now() - restartTime));
+    setIsMeasuring(false);
+  };
+
   const setMaxRunTimeout = (time) => {
     setMaxRunTimeoutId(setTimeout(() => {
       setIsTMaxRunReached(true);
@@ -247,28 +260,11 @@ function Acquisition() {
   };
 
   const startMeasurement = () => {
-    if (!isMeasuring) {
-      setFetchMetricsInterval();
-      setRestartTime(Date.now());
-      setMaxRunTimeout(remainingTime);
-      setIsMeasuring(true);
-    }
+    setFetchMetricsInterval();
+    setRestartTime(Date.now());
+    setMaxRunTimeout(remainingTime);
+    setIsMeasuring(true);
   };
-
-  const stopMeasurement = useCallback(() => {
-    if (isMeasuring) {
-      if (intervalId) {
-        clearInterval(intervalId);
-        setIntervalId(null);
-      }
-      if (maxRunTimeoutId) {
-        clearTimeout(maxRunTimeoutId);
-        setMaxRunTimeoutId(null);
-      }
-      setRemainingTime(prev => prev - (Date.now() - restartTime));
-      setIsMeasuring(false);
-    }
-  }, [isMeasuring, intervalId, maxRunTimeoutId]);
 
   // const handleReset = useCallback(() => {
   //   setAccelerometerMetrics([]);
@@ -346,7 +342,7 @@ function Acquisition() {
       <Paper>
         <Container>
           <Box>
-            <Typography variant='h6'>Decibel Meter Graph ({decibelMetrics.length}/{decibelBuffer.getHead()})</Typography>
+            <Typography variant='h6'>Decibel Meter Graph</Typography>
             <LineChart
               dataset={decibelMetrics}
               xAxis={[{ dataKey: "t" }]}
@@ -358,7 +354,7 @@ function Acquisition() {
             />
           </Box>
           <Box>
-            <Typography variant='h6'>Accelerometer Graph ({accelerometerMetrics.length}/{accelerometerBuffer.getHead()})</Typography>
+            <Typography variant='h6'>Accelerometer Graph</Typography>
             <LineChart
               dataset={accelerometerMetrics}
               xAxis={[{ dataKey: "t" }]}
@@ -370,7 +366,7 @@ function Acquisition() {
             />
           </Box>
           <Box>
-            <Typography variant='h6'>Gyroscope Graph ({gyroscopeMetrics.length}/{gyroscopeBuffer.getHead()})</Typography>
+            <Typography variant='h6'>Gyroscope Graph</Typography>
             <LineChart
               dataset={gyroscopeMetrics}
               xAxis={[{ dataKey: "t" }]}
@@ -389,12 +385,12 @@ function Acquisition() {
             <Typography variant='h6'>Time: ({intervalCount}) ({decibelBuffer.getHead()}) ({accelerometerBuffer.getHead()}) ({gyroscopeBuffer.getHead()})</Typography>
           </Box> */}
           <Box>
-            <Typography variant='h6'>Decibel Meter Data</Typography>
+            <Typography variant='h6'>Decibel Meter Data ({decibelMetrics.length}/{decibelBuffer.getHead()})</Typography>
             <p>Measurement Time: {decibelMetric.t ? decibelMetric.t.toFixed(2) : "N/A"}</p>
             <p>Current Decibel Level: {decibelMetric.d ? decibelMetric.d.toFixed(2) : "N/A"} dB</p>
           </Box>
           <Box>
-            <Typography variant='h6'>Accelerometer Data</Typography>
+            <Typography variant='h6'>Accelerometer Data ({accelerometerMetrics.length}/{accelerometerBuffer.getHead()})</Typography>
             <p>T: {accelerometerMetric.t ? accelerometerMetric.t.toFixed(2) : "N/A"}</p>
             <p>X: {accelerometerMetric.x ? accelerometerMetric.x.toFixed(2) : "N/A"}</p>
             <p>Y: {accelerometerMetric.y ? accelerometerMetric.y.toFixed(2) : "N/A"}</p>
@@ -402,7 +398,7 @@ function Acquisition() {
             <p>A: {accelerometerMetric.a ? accelerometerMetric.a.toFixed(2) : "N/A"}</p>
           </Box>
           <Box>
-            <Typography variant='h6'>Gyroscope Data</Typography>
+            <Typography variant='h6'>Gyroscope Data ({gyroscopeMetrics.length}/{gyroscopeBuffer.getHead()})</Typography>
             <p>T: {gyroscopeMetric.t ? gyroscopeMetric.t.toFixed(2) : "N/A"}</p>
             <p>X: {gyroscopeMetric.x ? gyroscopeMetric.x.toFixed(2) : "N/A"}</p>
             <p>Y: {gyroscopeMetric.y ? gyroscopeMetric.y.toFixed(2) : "N/A"}</p>
