@@ -360,7 +360,7 @@ function Acquisition() {
       <Paper>
         <Container>
           <Box>
-            <Typography variant='h6'>Interval Count ({intervalCount})</Typography>
+            <Typography variant='h6'>Time: ({intervalCount}) ({decibelBuffer.length}) ({accelerometerBuffer.length}) ({gyroscopeBuffer.length})</Typography>
           </Box>
           <Box>
             <Typography variant='h6'>Decibel Meter Data</Typography>
