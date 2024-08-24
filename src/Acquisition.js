@@ -75,6 +75,7 @@ const initAccelerometer = async () => {
       }
       accelerometerBuffer.push(newMetric);
     });
+    accelerometer.start();
   } catch (error) {
     if (error.name === 'SecurityError') {
       alert('Sensor construction was blocked by the Permissions Policy.');
@@ -113,6 +114,7 @@ const initGyroscope = async () => {
         a: Math.sqrt(gyroscope.x ** 2 + gyroscope.y ** 2 + gyroscope.z ** 2),
       }
       gyroscopeBuffer.push(newMetric);
+      gyroscope.start();
     });
   } catch (error) {
     if (error.name === 'SecurityError') {
@@ -241,30 +243,34 @@ function Acquisition() {
   };
 
   const startMeasurement = () => {
-    setFetchMetricsInterval();
-    setRestartTime(Date.now());
-    setMaxRunTimeout(remainingTime);
-    setIsMeasuring(true);
+    if (!isMeasuring) {
+      setFetchMetricsInterval();
+      setRestartTime(Date.now());
+      setMaxRunTimeout(remainingTime);
+      setIsMeasuring(true);
+    }
   };
 
   const stopMeasurement = useCallback(() => {
-    if (intervalId) {
-      clearInterval(intervalId);
-      setIntervalId(null);
+    if (isMeasuring) {
+      if (intervalId) {
+        clearInterval(intervalId);
+        setIntervalId(null);
+      }
+      if (maxRunTimeoutId) {
+        clearTimeout(maxRunTimeoutId);
+        setMaxRunTimeoutId(null);
+      }
+      setRemainingTime(prev => prev - (Date.now() - restartTime));
+      setIsMeasuring(false);
     }
-    if (maxRunTimeoutId) {
-      clearTimeout(maxRunTimeoutId);
-      setMaxRunTimeout(null);
-    }
-    setRemainingTime(prev => prev - (Date.now() - restartTime));
-    setIsMeasuring(false);
-  }, [intervalId, maxRunTimeoutId]);
+  }, [isMeasuring, intervalId, maxRunTimeoutId]);
 
-  const handleReset = useCallback(() => {
-    setAccelerometerMetrics([]);
-    setGyroscopeMetrics([]);
-    setDecibelMetrics([]);
-  }, []);
+  // const handleReset = useCallback(() => {
+  //   setAccelerometerMetrics([]);
+  //   setGyroscopeMetrics([]);
+  //   setDecibelMetrics([]);
+  // }, []);
 
   useEffect(() => {
     setTimeout(() => {
