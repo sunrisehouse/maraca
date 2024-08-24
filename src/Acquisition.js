@@ -184,6 +184,14 @@ function Acquisition() {
 
   const destroyAudio = useCallback(() => {
     if (audioContext) audioContext.close();
+    if (audioContext && audioContext.state === 'running') {
+      audioContext.suspend();
+    }
+    navigator.mediaDevices
+      .getUserMedia({ audio: true })
+      .then((stream) => {
+        stream.getTracks().forEach(track => track.stop()); // 마이크 트랙을 중지
+      }).catch(error => console.error("Error stopping media stream:", error));
     setAudioContext(null);
     setAudioWorkletNode(null);
   }, [audioContext]);
@@ -204,11 +212,11 @@ function Acquisition() {
   }, [initAudio, accelerometer, gyroscope]);
 
   const stopMeasurement = useCallback(() => {
-    if (audioContext) destroyAudio();
+    destroyAudio();
     if (accelerometer) accelerometer.stop();
     if (gyroscope) gyroscope.stop();
     setIsMeasuring(false);
-  }, [audioContext, accelerometer, gyroscope]);
+  }, [destroyAudio, accelerometer, gyroscope]);
 
   const handleExportFiles = () => {
     // Decibel 데이터를 배열 형식으로 변환
