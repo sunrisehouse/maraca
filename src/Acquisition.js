@@ -1,6 +1,6 @@
 import './Acquisition.css';
 import { Box, Button, ButtonGroup, Container, Paper, Typography } from '@mui/material';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LineChart } from '@mui/x-charts';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
@@ -147,81 +147,73 @@ function Acquisition() {
     };
   }, []);
 
-  useEffect(() => {
-    let audioCtx;
-    let audioNode;
+  const initAudio = useCallback(async () => {
+    try {
+      // 오디오 컨텍스트 생성
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    const initAudio = async () => {
-      try {
-        // 오디오 컨텍스트 생성
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      // 오디오 워크렛 모듈을 추가 (my-processor.js)
+      await audioCtx.audioWorklet.addModule('/maraca/build/audio-processor.js');
 
-        // 오디오 워크렛 모듈을 추가 (my-processor.js)
-        await audioCtx.audioWorklet.addModule('/maraca/build/audio-processor.js');
+      // AudioWorkletNode 생성
+      const audioNode = new AudioWorkletNode(audioCtx, 'audio-processor');
 
-        // AudioWorkletNode 생성
-        audioNode = new AudioWorkletNode(audioCtx, 'audio-processor');
+      // 사용자로부터 마이크 접근 권한 요청
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-        // 사용자로부터 마이크 접근 권한 요청
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // 마이크 스트림 생성
+      const microphone = audioCtx.createMediaStreamSource(stream);
 
-        // 마이크 스트림 생성
-        const microphone = audioCtx.createMediaStreamSource(stream);
+      // 마이크 -> AudioWorkletNode -> 출력
+      microphone.connect(audioNode);
+      audioNode.connect(audioCtx.destination);
 
-        // 마이크 -> AudioWorkletNode -> 출력
-        microphone.connect(audioNode);
-        audioNode.connect(audioCtx.destination);
-
-        // 오디오 데이터를 처리하기 위한 메시지 핸들러
-        audioNode.port.onmessage = (event) => {
-          const { decibel, timestamp } = event.data;
-
-          setDecibelMetric({
-            t: Date.now(),
-            d: decibel,
-          });
-
-          setDecibelMetrics(prev => [
-            ...prev,
-            { t: timestamp, d: decibel },
-          ]);
-        };
-        setAudioContext(audioCtx);
-        setAudioWorkletNode(audioNode);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    initAudio();
-
-    // 컴포넌트 언마운트 시 리소스 정리
-    return () => {
-      if (audioCtx) {
-        audioCtx.close();
-      }
-    };
+      audioNode.port.onmessage = (event) => {
+        const { decibel, timestamp } = event.data;
+        setDecibelMetric({
+          t: Date.now(),
+          d: decibel,
+        });
+        setDecibelMetrics(prev => [
+          ...prev,
+          { t: timestamp, d: decibel },
+        ]);
+      };
+      
+      setAudioContext(audioCtx);
+      setAudioWorkletNode(audioNode);
+    } catch (error) {
+      console.error(error);
+    }
   }, []);
 
-  const startMeasurement = () => {
-    if (audioContext && accelerometer) {
-      audioContext.resume();
-      accelerometer.start();
-      gyroscope.start();
-      // setIntervalId(newIntervalId);
-      setIsMeasuring(true);
-    }
-  };
+  const destroyAudio = useCallback(() => {
+    if (audioContext) audioContext.close();
+    setAudioContext(null);
+    setAudioWorkletNode(null);
+  }, [audioContext]);
 
-  const stopMeasurement = () => {
-    if (audioContext && accelerometer) {
-      audioContext.close();
-      accelerometer.stop();
-      gyroscope.stop();
-      // clearInterval(intervalId);
-      setIsMeasuring(false);
-    }
-  };
+  useEffect(() => {
+    return () => {
+      if (audioContext) {
+        audioContext.close();
+      }
+    };
+  }, [audioContext]);
+
+  const startMeasurement = useCallback(() => {
+    if (audioContext) initAudio();
+    if (accelerometer) accelerometer.start();
+    if (gyroscope) gyroscope.start();
+    setIsMeasuring(true);
+  }, [audioContext, accelerometer, gyroscope]);
+
+  const stopMeasurement = useCallback(() => {
+    if (audioContext) destroyAudio();
+    if (accelerometer) accelerometer.stop();
+    if (gyroscope) gyroscope.stop();
+    setIsMeasuring(false);
+  }, []);
 
   const handleExportFiles = () => {
     // Decibel 데이터를 배열 형식으로 변환
