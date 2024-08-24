@@ -1,26 +1,22 @@
 class MyAudioProcessor extends AudioWorkletProcessor {
+  constructor() {
+    super();
+  }
+
   process(inputs, outputs, parameters) {
     const input = inputs[0];
+    const samples = input[0];
 
-    if (input.length > 0) {
-      let sumSquares = 0;
+    if (samples && samples.length > 0) {
+      // RMS 계산
+      const rms = Math.sqrt(samples.reduce((sum, sample) => sum + sample * sample, 0) / samples.length);
 
-      // 각 샘플의 제곱합을 계산
-      input[0].forEach(sample => {
-        sumSquares += sample ** 2;
-      });
+      // dB 계산: 최소 RMS 값을 설정하여 로그의 무한대를 방지
+      const minRMS = 1e-10; // 최소 RMS 값 설정
+      const decibel = 20 * Math.log10(Math.max(rms, minRMS));
 
-      // 루트 평균 제곱 (RMS) 계산
-      const rms = Math.sqrt(sumSquares / input[0].length);
-
-      // 데시벨 계산 (상대적)
-      const decibel = 20 * Math.log10(rms);
-
-      // 현재 시간 (Unix 타임스탬프를 밀리초 단위로 계산)
-      const timestamp = Date.now();
-
-      // 메인 스레드로 데시벨 값과 시간을 전달
-      this.port.postMessage({ decibel, timestamp });
+      // 메인 스레드로 전송
+      this.port.postMessage({ decibel });
     }
 
     return true;
