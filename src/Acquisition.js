@@ -1,11 +1,12 @@
 import './Acquisition.css';
 import { Box, Button, ButtonGroup, Container, Paper, Typography } from '@mui/material';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { LineChart } from '@mui/x-charts';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import { Download, PlayCircleFilled, RestartAlt, StopCircle } from '@mui/icons-material';
+import { Download, PauseCircle, Pending, PlayCircleFilled, RestartAlt, StopCircle } from '@mui/icons-material';
 import CircularBuffer from './CircularBuffer';
+import { useSearchParams } from 'react-router-dom';
 
 
 const decibelBuffer = new CircularBuffer(10000);
@@ -37,9 +38,13 @@ function Acquisition() {
   const [accelerometerMetrics, setAccelerometerMetrics] = useState([]);
   const [gyroscopeMetrics, setGyroscopeMetrics] = useState([]);
 
-  const [intervalCount, setIntervalCount] = useState(0);
+  const [searchParams] = useSearchParams();
+  const tInterval = Number(searchParams.get('tInterval'));
+  const tWaiting = Number(searchParams.get('tWaiting'));
+  const tMaxRun = Number(searchParams.get('tMaxRun'));
 
-  const intervalTime = 1000;
+  const [isTWatingReached, setIsTWatingReached] = useState(false);
+  const [isTMaxRunReached, setTMaxRunReached] = useState(false);
 
   useEffect(() => {
     let accel = null;
@@ -177,10 +182,10 @@ function Acquisition() {
   }, []);
 
   const destroyAudio = useCallback(() => {
-    if (audioContext) audioContext.close();
-    if (audioContext && audioContext.state === 'running') {
-      audioContext.suspend();
-    }
+    if (audioContext)
+    if (audioContext && audioContext.state !== 'suspended') audioContext.close();
+    if (audioContext && audioContext.state === 'running') audioContext.suspend();
+
     navigator.mediaDevices
       .getUserMedia({ audio: true })
       .then((stream) => {
@@ -200,7 +205,6 @@ function Acquisition() {
 
   const initInterval = () => {
     const newIntervalId = setInterval(() => {
-      setIntervalCount(prev => prev + 1);
       const decibelData = decibelBuffer.getLast();
       if (decibelData) {
         setDecibelMetrics((prevData) => [
@@ -234,13 +238,13 @@ function Acquisition() {
           },
         ]);
       }
-    }, intervalTime);
+    }, tInterval);
     
     setIntervalId(newIntervalId);
   };
 
   const destroyInterval = useCallback(() => {
-    clearInterval(intervalId);
+    if (intervalId) clearInterval(intervalId);
     setIntervalId(null);
   }, [intervalId]);
 
@@ -266,27 +270,38 @@ function Acquisition() {
     setDecibelMetrics([]);
   }, []);
 
+  useEffect(() => {
+    setTimeout(() => {
+      setIsTWatingReached(true);
+      if (!isMeasuring) startMeasurement();
+    }, tWaiting);
+    setTimeout(() => {
+      setTMaxRunReached(true);
+      if (isMeasuring) stopMeasurement();
+    }, tMaxRun);
+  }, []);
+
   const handleSave = () => {
     // Decibel 데이터를 배열 형식으로 변환
     const decibelData = decibelMetrics.map(metric => ({
-      Timestamp: new Date(metric.t).toLocaleString(),
+      Time: new Date(metric.t).toLocaleString(),
       Decibel: metric.d,
     }));
     
     // Accelerometer 데이터를 배열 형식으로 변환
     const accelData = accelerometerMetrics.map(metric => ({
-      Timestamp: new Date(metric.t).toLocaleString(),
-      AccelX: metric.x,
-      AccelY: metric.y,
-      AccelZ: metric.z,
+      Time: new Date(metric.t).toLocaleString(),
+      Ax: metric.x,
+      Ay: metric.y,
+      Az: metric.z,
       "Linear Acceleration": metric.a,
     }));
 
     const gyroData = gyroscopeMetrics.map(metric => ({
-      Timestamp: new Date(metric.t).toLocaleString(),
-      GyroX: metric.x,
-      GyroY: metric.y,
-      GyroZ: metric.z,
+      Time: new Date(metric.t).toLocaleString(),
+      Rx: metric.x,
+      Ry: metric.y,
+      Rz: metric.z,
       "Angular Acceleration": metric.a,
     }));
 
@@ -305,7 +320,7 @@ function Acquisition() {
 
     // 파일 저장
     const blob = new Blob([wbout], { type: "application/octet-stream" });
-    saveAs(blob, "sensor_data.xlsx");
+    saveAs(blob, "Time_Date.xlsx");
   }
 
   const decibelMetric = decibelMetrics.length > 0
@@ -338,16 +353,17 @@ function Acquisition() {
             <Button
               variant="contained"
               onClick={isMeasuring ? stopMeasurement : startMeasurement}
-              startIcon={isMeasuring ? <StopCircle /> : <PlayCircleFilled /> }
+              startIcon={!isTWatingReached ? <Pending /> : isMeasuring ? <PauseCircle /> : <PlayCircleFilled /> }
               color={isMeasuring ? "secondary" : "primary"}
-              sx={{ width: "100px" }}
+              disabled={!isTWatingReached || isTMaxRunReached}
+              sx={{ width: "104px" }}
             >
-              {isMeasuring ? "stop " : "start"}
+              {!isTWatingReached ? "wating" : isMeasuring ? "pause " : "restart"}
             </Button>
             <Button
               variant="contained"
               onClick={handleReset}
-              disabled={isMeasuring}
+              disabled={!isTWatingReached || isTMaxRunReached || isMeasuring}
               startIcon={<RestartAlt />}
             >
               reset
@@ -355,40 +371,12 @@ function Acquisition() {
             <Button
               variant="contained"
               onClick={handleSave}
-              disabled={isMeasuring}
+              disabled={!isTWatingReached || isTMaxRunReached || isMeasuring}
               startIcon={<Download />}
             >
               save
             </Button>
           </ButtonGroup>
-        </Container>
-      </Paper>
-      <Paper>
-        <Container>
-          {/* <Box>
-            <Typography variant='h6'>Time: ({intervalCount}) ({decibelBuffer.getHead()}) ({accelerometerBuffer.getHead()}) ({gyroscopeBuffer.getHead()})</Typography>
-          </Box> */}
-          <Box>
-            <Typography variant='h6'>Decibel Meter Data</Typography>
-            <p>Measurement Time: {decibelMetric.t ? decibelMetric.t.toFixed(2) : "N/A"}</p>
-            <p>Current Decibel Level: {decibelMetric.d ? decibelMetric.d.toFixed(2) : "N/A"} dB</p>
-          </Box>
-          <Box>
-            <Typography variant='h6'>Accelerometer Data</Typography>
-            <p>T: {accelerometerMetric.t ? accelerometerMetric.t.toFixed(2) : "N/A"}</p>
-            <p>X: {accelerometerMetric.x ? accelerometerMetric.x.toFixed(2) : "N/A"}</p>
-            <p>Y: {accelerometerMetric.y ? accelerometerMetric.y.toFixed(2) : "N/A"}</p>
-            <p>Z: {accelerometerMetric.z ? accelerometerMetric.z.toFixed(2) : "N/A"}</p>
-            <p>A: {accelerometerMetric.a ? accelerometerMetric.a.toFixed(2) : "N/A"}</p>
-          </Box>
-          <Box>
-            <Typography variant='h6'>Gyroscope Data</Typography>
-            <p>T: {gyroscopeMetric.t ? gyroscopeMetric.t.toFixed(2) : "N/A"}</p>
-            <p>X: {gyroscopeMetric.x ? gyroscopeMetric.x.toFixed(2) : "N/A"}</p>
-            <p>Y: {gyroscopeMetric.y ? gyroscopeMetric.y.toFixed(2) : "N/A"}</p>
-            <p>Z: {gyroscopeMetric.z ? gyroscopeMetric.z.toFixed(2) : "N/A"}</p>
-            <p>A: {gyroscopeMetric.a ? gyroscopeMetric.a.toFixed(2) : "N/A"}</p>
-          </Box>
         </Container>
       </Paper>
       <Paper>
@@ -428,6 +416,34 @@ function Acquisition() {
               width={300}
               height={200}
             />
+          </Box>
+        </Container>
+      </Paper>
+      <Paper>
+        <Container>
+          {/* <Box>
+            <Typography variant='h6'>Time: ({intervalCount}) ({decibelBuffer.getHead()}) ({accelerometerBuffer.getHead()}) ({gyroscopeBuffer.getHead()})</Typography>
+          </Box> */}
+          <Box>
+            <Typography variant='h6'>Decibel Meter Data</Typography>
+            <p>Measurement Time: {decibelMetric.t ? decibelMetric.t.toFixed(2) : "N/A"}</p>
+            <p>Current Decibel Level: {decibelMetric.d ? decibelMetric.d.toFixed(2) : "N/A"} dB</p>
+          </Box>
+          <Box>
+            <Typography variant='h6'>Accelerometer Data</Typography>
+            <p>T: {accelerometerMetric.t ? accelerometerMetric.t.toFixed(2) : "N/A"}</p>
+            <p>X: {accelerometerMetric.x ? accelerometerMetric.x.toFixed(2) : "N/A"}</p>
+            <p>Y: {accelerometerMetric.y ? accelerometerMetric.y.toFixed(2) : "N/A"}</p>
+            <p>Z: {accelerometerMetric.z ? accelerometerMetric.z.toFixed(2) : "N/A"}</p>
+            <p>A: {accelerometerMetric.a ? accelerometerMetric.a.toFixed(2) : "N/A"}</p>
+          </Box>
+          <Box>
+            <Typography variant='h6'>Gyroscope Data</Typography>
+            <p>T: {gyroscopeMetric.t ? gyroscopeMetric.t.toFixed(2) : "N/A"}</p>
+            <p>X: {gyroscopeMetric.x ? gyroscopeMetric.x.toFixed(2) : "N/A"}</p>
+            <p>Y: {gyroscopeMetric.y ? gyroscopeMetric.y.toFixed(2) : "N/A"}</p>
+            <p>Z: {gyroscopeMetric.z ? gyroscopeMetric.z.toFixed(2) : "N/A"}</p>
+            <p>A: {gyroscopeMetric.a ? gyroscopeMetric.a.toFixed(2) : "N/A"}</p>
           </Box>
         </Container>
       </Paper>

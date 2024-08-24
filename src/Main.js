@@ -1,12 +1,16 @@
 import './Main.css';
 import { Button, Container, InputAdornment, Paper, TextField, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 
 function Main() {
   const navigate = useNavigate();
+  const [tWaiting, setTWating] = useState(1);
+  const [tInterval, setTInterval] = useState(1);
+  const [tMaxRun, setTMaxRun] = useState(1);
 
   const handleStartButton = () => {
-    navigate("/acquisition");
+    navigate(`/acquisition?tWaiting=${tWaiting * 1000}&tInterval=${tInterval * 1000}&tMaxRun=${tMaxRun * 1000 * 60}`);
   };
 
   return (
@@ -19,8 +23,6 @@ function Main() {
         }}
       >
         <Container>
-
-          {/* <SettingsIcon /> */}
           <Typography
             variant="h5"
             noWrap
@@ -42,6 +44,10 @@ function Main() {
             InputProps={{
               endAdornment: <InputAdornment position="end">sec</InputAdornment>,
             }}
+            value={tWaiting}
+            onChange={(event) => {
+              setTWating(event.target.value);
+            }}
           />
           <TextField
             label="Tinterval"
@@ -53,6 +59,10 @@ function Main() {
             InputProps={{
               endAdornment: <InputAdornment position="end">sec</InputAdornment>,
             }}
+            value={tInterval}
+            onChange={(event) => {
+              setTInterval(event.target.value);
+            }}
           />
           <TextField
             label="Tmaxrun"
@@ -63,6 +73,10 @@ function Main() {
             fullWidth
             InputProps={{
               endAdornment: <InputAdornment position="end">min</InputAdornment>,
+            }}
+            value={tMaxRun}
+            onChange={(event) => {
+              setTMaxRun(event.target.value);
             }}
           />
         </Container>
