@@ -223,7 +223,7 @@ function Acquisition() {
       }
       const gyroData = gyroscopeBuffer.getLast();
       if (gyroData) {
-        setDecibelMetrics((prevData) => [
+        setGyroscopeMetrics((prevData) => [
           ...prevData,
           {
             t: gyroData.t,
