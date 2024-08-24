@@ -16,24 +16,6 @@ function Acquisition() {
   const [decibelMetrics, setDecibelMetrics] = useState([]);
   const [accelerometerMetrics, setAccelerometerMetrics] = useState([]);
   const [gyroscopeMetrics, setGyroscopeMetrics] = useState([]);
-  const [decibelMetric, setDecibelMetric] = useState({
-    t: 0,
-    d: 0,
-  });
-  const [accelerometerMetric, setAccelerometerMetric] = useState({
-    t: 0,
-    x: 0,
-    y: 0,
-    z: 0,
-    a: 0,
-  });
-  const [gyroscopeMetric, setGyroscopeMetric] = useState({
-    t: 0,
-    x: 0,
-    y: 0,
-    z: 0,
-    a: 0,
-  });
 
   useEffect(() => {
     let accel = null;
@@ -61,7 +43,6 @@ function Acquisition() {
             z: accel.z,
             a: Math.sqrt(accel.x ** 2 + accel.y ** 2 + accel.z ** 2),
           }
-          setAccelerometerMetric(newMetric);
           setAccelerometerMetrics(prev => [
             ...prev,
             newMetric,
@@ -114,7 +95,6 @@ function Acquisition() {
             z: gyro.z,
             a: Math.sqrt(gyro.x ** 2 + gyro.y ** 2 + gyro.z ** 2),
           }
-          setGyroscopeMetric(newMetric);
           setGyroscopeMetrics(prev => [
             ...prev,
             newMetric,
@@ -168,7 +148,6 @@ function Acquisition() {
           t: Date.now(),
           d: decibel,
         }
-        setDecibelMetric(newMetric);
         setDecibelMetrics(prev => [
           ...prev,
           newMetric,
@@ -266,6 +245,18 @@ function Acquisition() {
     const blob = new Blob([wbout], { type: "application/octet-stream" });
     saveAs(blob, "sensor_data.xlsx");
   }
+
+  const decibelMetric = decibelMetrics.length > 0
+    ? decibelMetrics[decibelMetrics.length - 1]
+    : { t: 0, d: 0 };
+
+  const accelerometerMetric = accelerometerMetrics.length > 0
+    ? accelerometerMetrics[accelerometerMetrics.length - 1]
+    : { t: 0, x: 0, y: 0, z: 0, a: 0 };
+
+  const gyroscopeMetric = gyroscopeMetrics.length > 0
+    ? gyroscopeMetrics[gyroscopeMetrics.length - 1]
+    : { t: 0, x: 0, y: 0, z: 0, a: 0 };
 
   return (
     <Container
