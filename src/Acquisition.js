@@ -1,6 +1,6 @@
 import './Acquisition.css';
 import { Box, Button, ButtonGroup, Container, Paper, Typography } from '@mui/material';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { LineChart } from '@mui/x-charts';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
@@ -11,14 +11,8 @@ function Acquisition() {
   const [accelerometer, setAccelerometer] = useState(null);
   const [gyroscope, setGyroscope] = useState(null);
   const [isMeasuring, setIsMeasuring] = useState(false);
-  const [intervalId, setIntervalId] = useState(null);
+  // const [intervalId, setIntervalId] = useState(null);
 
-  const startDate = useMemo(() => {
-    return Date.now();
-  }, []);
-  const endDate = useMemo(() => {
-    return startDate + 100000;
-  }, []);
   const [decibelMetrics, setDecibelMetrics] = useState([]);
   const [accelerometerMetrics, setAccelerometerMetrics] = useState([]);
   const [gyroscopeMetrics, setGyroscopeMetrics] = useState([]);
@@ -169,14 +163,15 @@ function Acquisition() {
       audioNode.connect(audioCtx.destination);
 
       audioNode.port.onmessage = (event) => {
-        const { decibel, timestamp } = event.data;
-        setDecibelMetric({
+        const { decibel } = event.data;
+        const newMetric = {
           t: Date.now(),
           d: decibel,
-        });
+        }
+        setDecibelMetric(newMetric);
         setDecibelMetrics(prev => [
           ...prev,
-          { t: timestamp, d: decibel },
+          newMetric,
         ]);
       };
       
@@ -202,11 +197,11 @@ function Acquisition() {
   }, [audioContext]);
 
   const startMeasurement = useCallback(() => {
-    if (audioContext) initAudio();
+    initAudio();
     if (accelerometer) accelerometer.start();
     if (gyroscope) gyroscope.start();
     setIsMeasuring(true);
-  }, [audioContext, accelerometer, gyroscope]);
+  }, [initAudio, accelerometer, gyroscope]);
 
   const stopMeasurement = useCallback(() => {
     if (audioContext) destroyAudio();
@@ -245,7 +240,7 @@ function Acquisition() {
 
     XLSX.utils.book_append_sheet(wb, wsDecibel, "Decibel Data");
     XLSX.utils.book_append_sheet(wb, wsAccel, "Accelerometer Data");
-    XLSX.utils.book_append_sheet(wb, wsAccel, "Gyroscope Data");
+    XLSX.utils.book_append_sheet(wb, wsGyro, "Gyroscope Data");
 
     // Excel 파일로 변환
     const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });

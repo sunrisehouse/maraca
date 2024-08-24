@@ -1,6 +1,6 @@
 import './Main.css';
-import { Button, Container, InputAdornment, Paper, TextField, Toolbar, Typography } from '@mui/material';
-import { redirect, useNavigate } from 'react-router-dom';
+import { Button, Container, InputAdornment, Paper, TextField, Typography } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
 function Main() {
   const navigate = useNavigate();
