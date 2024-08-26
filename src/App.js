@@ -4,6 +4,7 @@ import { AppBar, Toolbar, Typography } from '@mui/material';
 import SensorsIcon from '@mui/icons-material/Sensors';
 import Main from './Main';
 import Acquisition from './Acquisition';
+import WaveformVisualizer from './WaveformVisualizer';
 
 function App() {
   const routes = useRoutes([
@@ -15,6 +16,10 @@ function App() {
       path: "/acquisition",
       element: <Acquisition />
     },
+    {
+      path: "/WaveformVisualizer",
+      element: <WaveformVisualizer />
+    }
   ]);
 
   return (
