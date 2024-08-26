@@ -134,7 +134,7 @@ const saveExcelFile = (decibelMetrics, accelerometerMetrics, gyroscopeMetrics) =
   const decibelData = decibelMetrics.map(metric => ({
     Time: metric.t,
     Decibel: metric.d,
-    Samples: metric.samples.reduce((acc, cur) => `${acc}, ${cur}`, ""),
+    Samples: `${metric.samples}`,
   }));
 
   // Accelerometer 데이터를 배열 형식으로 변환
