@@ -92,6 +92,13 @@ function Main() {
           Start
         </Button>
       </Container>
+      <Container sx={{ position: "fixed", bottom: 0, right: 0 }}>
+        <Button
+          onClick={() => {navigate('/wave-form-visualizer')}}
+        >
+          test
+        </Button>
+      </Container>
     </Container>
   );
 }

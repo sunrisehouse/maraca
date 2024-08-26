@@ -17,7 +17,7 @@ function App() {
       element: <Acquisition />
     },
     {
-      path: "/WaveformVisualizer",
+      path: "/wave-form-visualizer",
       element: <WaveformVisualizer />
     }
   ]);
