@@ -16,7 +16,7 @@ class MyAudioProcessor extends AudioWorkletProcessor {
       const decibel = 20 * Math.log10(Math.max(rms, minRMS));
 
       // 메인 스레드로 전송
-      this.port.postMessage({ decibel });
+      this.port.postMessage({ decibel, samples });
     }
 
     return true;

@@ -34,10 +34,11 @@ const initAudio = async () => {
     audioNode.connect(audioContext.destination);
   
     audioNode.port.onmessage = (event) => {
-      const { decibel } = event.data;
+      const { decibel, samples } = event.data;
       const newMetric = {
         t: Date.now(),
         d: decibel,
+        samples,
       }
       decibelBuffer.push(newMetric);
     };
@@ -131,13 +132,14 @@ const initGyroscope = async () => {
 const saveExcelFile = (decibelMetrics, accelerometerMetrics, gyroscopeMetrics) => {
   // Decibel 데이터를 배열 형식으로 변환
   const decibelData = decibelMetrics.map(metric => ({
-    Time: new Date(metric.t).toLocaleString(),
+    Time: metric.t,
     Decibel: metric.d,
+    Samples: metric.samples.reduce((acc, cur) => `${acc}, ${cur}`, ""),
   }));
 
   // Accelerometer 데이터를 배열 형식으로 변환
   const accelData = accelerometerMetrics.map(metric => ({
-    Time: new Date(metric.t).toLocaleString(),
+    Time: metric.t,
     Ax: metric.x,
     Ay: metric.y,
     Az: metric.z,
@@ -145,7 +147,7 @@ const saveExcelFile = (decibelMetrics, accelerometerMetrics, gyroscopeMetrics) =
   }));
 
   const gyroData = gyroscopeMetrics.map(metric => ({
-    Time: new Date(metric.t).toLocaleString(),
+    Time: metric.t,
     Rx: metric.x,
     Ry: metric.y,
     Rz: metric.z,
@@ -192,6 +194,8 @@ function Acquisition() {
   const [isTWatingReached, setIsTWatingReached] = useState(false);
   const [isTMaxRunReached, setIsTMaxRunReached] = useState(false);
 
+  const startTime = useMemo(() => Date.now());
+
   useEffect(() => {
     const initAudioContext = async () => {
       const { audioContext: sensor } = await initAudio() || { audioContext: null };
@@ -237,7 +241,7 @@ function Acquisition() {
       if (decibelData) {
         setDecibelMetrics((prevData) => [
           ...prevData,
-          {t: decibelData.t, d: decibelData.d },
+          {t: decibelData.t - startTime, d: decibelData.d , samples: decibelData.samples},
         ]);
       }
       const accelData = accelerometerBuffer.getLast();
@@ -245,7 +249,7 @@ function Acquisition() {
         setAccelerometerMetrics((prevData) => [
           ...prevData,
           {
-            t: accelData.t,
+            t: accelData.t - startTime,
             x: accelData.x,
             y: accelData.y,
             z: accelData.z,
@@ -258,7 +262,7 @@ function Acquisition() {
         setGyroscopeMetrics((prevData) => [
           ...prevData,
           {
-            t: gyroData.t,
+            t: gyroData.t - startTime,
             x: gyroData.x,
             y: gyroData.y,
             z: gyroData.z,
