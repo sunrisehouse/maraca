@@ -96,7 +96,12 @@ function Main() {
         <Button
           onClick={() => {navigate('/wave-form-visualizer')}}
         >
-          test
+          test1
+        </Button>
+        <Button
+          onClick={() => {navigate('/bar-graph-visualizer')}}
+        >
+          test2
         </Button>
       </Container>
     </Container>

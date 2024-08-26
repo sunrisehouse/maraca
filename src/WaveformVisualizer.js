@@ -2,79 +2,60 @@ import { useEffect, useRef } from 'react';
 
 const WaveformVisualizer = () => {
   const canvasRef = useRef(null);
-  const audioContextRef = useRef(null);
-  const workletNodeRef = useRef(null);
-  const analyserRef = useRef(null);
 
   useEffect(() => {
-    const setupAudioContext = async () => {
-      // AudioContext 생성
-      audioContextRef.current = new (window.AudioContext || window.webkitAudioContext)();
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
 
-      // Audio Worklet 모듈 로드
-      await audioContextRef.current.audioWorklet.addModule('/maraca/build/test-processor.js');
+    const canvas = canvasRef.current;
+    const canvasCtx = canvas.getContext('2d');
+    const bufferLength = analyser.fftSize;
+    const dataArray = new Uint8Array(bufferLength);
 
-      // Worklet 노드 생성
-      workletNodeRef.current = new AudioWorkletNode(audioContextRef.current, 'audio-processor');
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
 
-      // 마이크 접근 권한 요청
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const source = audioContextRef.current.createMediaStreamSource(stream);
-      
-      // 마이크 스트림을 WorkletNode로 연결
-      source.connect(workletNodeRef.current);
+      const drawWaveform = () => {
+        requestAnimationFrame(drawWaveform);
 
-      // WorkletNode에서 받은 메시지를 처리해 파형 그리기
-      workletNodeRef.current.port.onmessage = (event) => {
-        const audioBuffer = event.data;
-        drawWaveform(audioBuffer);
-      };
-    };
+        analyser.getByteTimeDomainData(dataArray);
 
-    const drawWaveform = (audioBuffer) => {
-      const canvas = canvasRef.current;
-      const canvasCtx = canvas.getContext('2d');
-      const bufferLength = audioBuffer.length;
+        // Canvas 설정
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        canvasCtx.fillStyle = 'black';
+        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // 캔버스 초기화
-      canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
-      canvasCtx.fillStyle = 'black';
-      canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+        // 파형 그리기 설정
+        canvasCtx.lineWidth = 2;
+        canvasCtx.strokeStyle = 'lime';
+        canvasCtx.beginPath();
 
-      // 파형 그리기
-      canvasCtx.lineWidth = 2;
-      canvasCtx.strokeStyle = 'lime';
-      canvasCtx.beginPath();
+        const sliceWidth = canvas.width / bufferLength;
+        let x = 0;
 
-      const sliceWidth = canvas.width / bufferLength;
-      let x = 0;
+        // 파형 데이터를 기반으로 선 그리기
+        for (let i = 0; i < bufferLength; i++) {
+          // 0에서 255 사이의 값을 -1에서 1 사이로 정규화
+          const v = (dataArray[i] / 128) - 1;
+          const y = (v * canvas.height) / 2 + canvas.height / 2;
 
-      for (let i = 0; i < bufferLength; i++) {
-        const v = audioBuffer[i];
-        const y = (v * canvas.height) / 2 + canvas.height / 2;
+          if (i === 0) {
+            canvasCtx.moveTo(x, y);
+          } else {
+            canvasCtx.lineTo(x, y);
+          }
 
-        if (i === 0) {
-          canvasCtx.moveTo(x, y);
-        } else {
-          canvasCtx.lineTo(x, y);
+          x += sliceWidth;
         }
 
-        x += sliceWidth;
-      }
+        canvasCtx.lineTo(canvas.width, canvas.height / 2);
+        canvasCtx.stroke();
+      };
 
-      canvasCtx.lineTo(canvas.width, canvas.height / 2);
-      canvasCtx.stroke();
-    };
-
-    // 오디오 컨텍스트 설정
-    setupAudioContext();
-
-    return () => {
-      // 컴포넌트가 언마운트될 때 오디오 컨텍스트를 종료
-      if (audioContextRef.current) {
-        audioContextRef.current.close();
-      }
-    };
+      drawWaveform();
+    }).catch((err) => console.error('Error accessing microphone:', err));
   }, []);
 
   return <canvas ref={canvasRef} width="600" height="200" />;

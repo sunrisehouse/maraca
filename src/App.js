@@ -5,6 +5,7 @@ import SensorsIcon from '@mui/icons-material/Sensors';
 import Main from './Main';
 import Acquisition from './Acquisition';
 import WaveformVisualizer from './WaveformVisualizer';
+import BarGraphVisualizer from './BarGraphVisualizer';
 
 function App() {
   const routes = useRoutes([
@@ -19,6 +20,10 @@ function App() {
     {
       path: "/wave-form-visualizer",
       element: <WaveformVisualizer />
+    },
+    {
+      path: "/bar-graph-visualizer",
+      element: <BarGraphVisualizer />
     }
   ]);
 
