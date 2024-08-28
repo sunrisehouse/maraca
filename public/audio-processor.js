@@ -1,8 +1,4 @@
 class MyAudioProcessor extends AudioWorkletProcessor {
-  constructor() {
-    super();
-  }
-
   process(inputs, outputs, parameters) {
     const input = inputs[0];
     const samples = input[0];

@@ -1,14 +1,14 @@
 import './Acquisition.css';
 import { Box, Button, ButtonGroup, Container, Paper, Typography } from '@mui/material';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LineChart } from '@mui/x-charts';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import { Download, PauseCircle, Pending, PlayCircleFilled, RestartAlt, StopCircle } from '@mui/icons-material';
+import { Download, PauseCircle, Pending, PlayCircleFilled } from '@mui/icons-material';
 import CircularBuffer from './CircularBuffer';
 import { useSearchParams } from 'react-router-dom';
 
-const decibelBuffer = new CircularBuffer(10000);
+const decibelBuffer = new CircularBuffer(3000);
 const accelerometerBuffer = new CircularBuffer(1000);
 const gyroscopeBuffer = new CircularBuffer(1000);
 
@@ -57,7 +57,7 @@ const initAccelerometer = async () => {
     return () => {};
   }
   
-  if (!'Accelerometer' in window) {
+  if (!('Accelerometer' in window)) {
     alert('브라우저가 센서를 지원하지 않습니다.');
     return () => {};
   }
@@ -97,7 +97,7 @@ const initGyroscope = async () => {
     return () => {};
   }
 
-  if (!'Gyroscope' in window) {
+  if (!('Gyroscope' in window)) {
     alert('브라우저가 센서를 지원하지 않습니다.');
     return () => {};
   }
@@ -130,6 +130,34 @@ const initGyroscope = async () => {
 };
 
 const saveExcelFile = (decibelMetrics, accelerometerMetrics, gyroscopeMetrics) => {
+  const totalData = decibelMetrics.map(metric => ({
+    Time: metric.t,
+    Decibel: metric.d,
+    Ax: '',
+    Ay: '',
+    Az: '',
+    Rx: '',
+    Ry: '',
+    Rz: '',
+  }));
+  accelerometerMetrics.forEach(metric => {
+    const matchingData = totalData.find(data => data.Time === metric.t);
+    if (matchingData) {
+      matchingData.Ax = metric.x;
+      matchingData.Ay = metric.y;
+      matchingData.Az = metric.z;
+    }
+  });
+
+  gyroscopeMetrics.forEach(metric => {
+    const matchingData = totalData.find(data => data.Time === metric.t);
+    if (matchingData) {
+      matchingData.Rx = metric.x;
+      matchingData.Ry = metric.y;
+      matchingData.Rz = metric.z;
+    }
+  });
+
   // Decibel 데이터를 배열 형식으로 변환
   const decibelData = decibelMetrics.map(metric => ({
     Time: metric.t,
@@ -156,10 +184,12 @@ const saveExcelFile = (decibelMetrics, accelerometerMetrics, gyroscopeMetrics) =
 
   // 두 개의 워크시트로 데이터를 추가
   const wb = XLSX.utils.book_new();
+  const wsTotal = XLSX.utils.json_to_sheet(totalData);
   const wsDecibel = XLSX.utils.json_to_sheet(decibelData);
   const wsAccel = XLSX.utils.json_to_sheet(accelData);
   const wsGyro = XLSX.utils.json_to_sheet(gyroData);
 
+  XLSX.utils.book_append_sheet(wb, wsTotal, "Total Data");
   XLSX.utils.book_append_sheet(wb, wsDecibel, "Decibel Data");
   XLSX.utils.book_append_sheet(wb, wsAccel, "Accelerometer Data");
   XLSX.utils.book_append_sheet(wb, wsGyro, "Gyroscope Data");
@@ -171,6 +201,74 @@ const saveExcelFile = (decibelMetrics, accelerometerMetrics, gyroscopeMetrics) =
   const blob = new Blob([wbout], { type: "application/octet-stream" });
   saveAs(blob, "Time_Date.xlsx");
 };
+
+const useWaveformVisualizerCanvasRef = () => {
+  const canvasRef = useRef(null);
+  
+  useEffect(() => {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const analyser = audioContext.createAnalyser();
+    analyser.fftSize = 2048;
+
+    const canvas = canvasRef.current;
+    const canvasCtx = canvas.getContext('2d');
+    const bufferLength = analyser.fftSize;
+    const dataArray = new Uint8Array(bufferLength);
+
+    navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
+      const source = audioContext.createMediaStreamSource(stream);
+      source.connect(analyser);
+
+      const drawWaveform = () => {
+        requestAnimationFrame(drawWaveform);
+
+        analyser.getByteTimeDomainData(dataArray);
+
+        // Canvas 설정
+        canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+        canvasCtx.fillStyle = 'white';
+        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // 파형 그리기 설정
+        canvasCtx.lineWidth = 2;
+        canvasCtx.strokeStyle = '#02B2AF';
+        canvasCtx.beginPath();
+
+        const sliceWidth = canvas.width / bufferLength;
+        let x = 0;
+
+        // 파형 데이터를 기반으로 선 그리기
+        for (let i = 0; i < bufferLength; i++) {
+          // 0에서 255 사이의 값을 -1에서 1 사이로 정규화
+          const v = (dataArray[i] / 128) - 1;
+          const y = (v * canvas.height) / 2 + canvas.height / 2;
+
+          if (i === 0) {
+            canvasCtx.moveTo(x, y);
+          } else {
+            canvasCtx.lineTo(x, y);
+          }
+
+          x += sliceWidth;
+        }
+
+        canvasCtx.lineTo(canvas.width, canvas.height / 2);
+        canvasCtx.stroke();
+
+        // 가운데 가로선 그리기
+        canvasCtx.beginPath();
+        canvasCtx.moveTo(0, canvas.height / 2);
+        canvasCtx.lineTo(canvas.width, canvas.height / 2);
+        canvasCtx.strokeStyle = '#02B2AF';
+        canvasCtx.stroke();
+      };
+
+      drawWaveform();
+    }).catch((err) => console.error('Error accessing microphone:', err));
+  }, []);
+
+  return canvasRef;
+}
 
 function Acquisition() {
   const [isMeasuring, setIsMeasuring] = useState(false);
@@ -195,6 +293,8 @@ function Acquisition() {
   const [isTMaxRunReached, setIsTMaxRunReached] = useState(false);
 
   const startTime = useMemo(() => Date.now());
+
+  const canvasRef = useWaveformVisualizerCanvasRef();
 
   useEffect(() => {
     const initAudioContext = async () => {
@@ -233,7 +333,15 @@ function Acquisition() {
     return () => {
       destroyAllSensors();
     }
-  }, [])
+  }, []);
+
+  useEffect(() => {
+    // Cleanup function to clear intervals and timeouts when the component unmounts
+    return () => {
+      if (fetchMetricsIntervalId) clearInterval(fetchMetricsIntervalId);
+      if (maxRunTimeoutId) clearTimeout(maxRunTimeoutId);
+    };
+  }, [fetchMetricsIntervalId, maxRunTimeoutId]);
 
   const setFetchMetricsInterval = () => {
     setFetchMetricsIntervalId(setInterval(() => {
@@ -376,6 +484,10 @@ function Acquisition() {
       </Paper>
       <Paper>
         <Container>
+          <Box>
+            <Typography variant='h6'>Waveform</Typography>
+            <canvas ref={canvasRef} width="300" height="200" />
+          </Box>
           <Box>
             <Typography variant='h6'>Decibel Meter Graph</Typography>
             <LineChart
