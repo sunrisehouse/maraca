@@ -140,12 +140,25 @@ const saveExcelFile = (decibelMetrics, accelerometerMetrics, gyroscopeMetrics) =
     Ry: '',
     Rz: '',
   }));
+
+  // Step 2: Add accelerometerMetrics to totalData
   accelerometerMetrics.forEach(metric => {
     const matchingData = totalData.find(data => data.Time === metric.t);
     if (matchingData) {
       matchingData.Ax = metric.x;
       matchingData.Ay = metric.y;
       matchingData.Az = metric.z;
+    } else {
+      totalData.push({
+        Time: metric.t,
+        Decibel: '',
+        Ax: metric.x,
+        Ay: metric.y,
+        Az: metric.z,
+        Rx: '',
+        Ry: '',
+        Rz: '',
+      });
     }
   });
 
@@ -155,8 +168,21 @@ const saveExcelFile = (decibelMetrics, accelerometerMetrics, gyroscopeMetrics) =
       matchingData.Rx = metric.x;
       matchingData.Ry = metric.y;
       matchingData.Rz = metric.z;
+    } else {
+      totalData.push({
+        Time: metric.t,
+        Decibel: '',
+        Ax: '',
+        Ay: '',
+        Az: '',
+        Rx: metric.x,
+        Ry: metric.y,
+        Rz: metric.z,
+      });
     }
   });
+
+  totalData.sort((a, b) => a.Time - b.Time);
 
   // Decibel 데이터를 배열 형식으로 변환
   const decibelData = decibelMetrics.map(metric => ({
