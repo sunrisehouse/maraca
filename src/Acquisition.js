@@ -184,12 +184,25 @@ const saveExcelFile = (decibelMetrics, accelerometerMetrics, gyroscopeMetrics) =
 
   totalData.sort((a, b) => a.Time - b.Time);
 
-  // Decibel 데이터를 배열 형식으로 변환
-  const decibelData = decibelMetrics.map(metric => ({
-    Time: metric.t,
-    Decibel: metric.d,
-    Samples: `${metric.samples}`,
-  }));
+  const decibelData = [];
+
+  decibelMetrics.forEach(metric => {
+    // Create a new object starting with Time and Decibel
+    const newMetric = {
+      Time: metric.t,
+      Decibel: metric.d,
+    };
+  
+    // Add each sample with keys S1, S2, ..., Sn
+    metric.samples.forEach((sample, index) => {
+      decibelData.push({
+        Time: index === 0 ? metric.t : '',
+        Sample: sample,
+      });
+    });
+  
+    return newMetric;
+  });
 
   // Accelerometer 데이터를 배열 형식으로 변환
   const accelData = accelerometerMetrics.map(metric => ({
