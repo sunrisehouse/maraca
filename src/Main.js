@@ -54,7 +54,7 @@ function Main() {
             variant="filled"
             type="number"
             size="small"
-            defaultValue={1}
+            defaultValue={0.001}
             fullWidth
             InputProps={{
               endAdornment: <InputAdornment position="end">sec</InputAdornment>,
