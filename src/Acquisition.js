@@ -63,7 +63,7 @@ const initAccelerometer = async () => {
   }
 
   try {
-    const accelerometer = new window.Accelerometer({ frequency: 60 });
+    const accelerometer = new window.Accelerometer({ frequency: 1000 });
     accelerometer.addEventListener("reading", () => {
       const now = Date.now()
       const newMetric = {
@@ -103,7 +103,7 @@ const initGyroscope = async () => {
   }
 
   try {
-    const gyroscope = new window.Gyroscope({ frequency: 60 });
+    const gyroscope = new window.Gyroscope({ frequency: 1000 });
     gyroscope.addEventListener("reading", () => {
       const now = Date.now()
       const newMetric = {
