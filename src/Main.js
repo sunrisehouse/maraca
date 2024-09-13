@@ -50,11 +50,11 @@ function Main() {
             }}
           />
           <TextField
-            label="Tinterval"
+            label="Tinterval (seconds)"
             variant="filled"
             type="number"
             size="small"
-            defaultValue={0.001}
+            defaultValue={3}
             fullWidth
             InputProps={{
               endAdornment: <InputAdornment position="end">sec</InputAdornment>,

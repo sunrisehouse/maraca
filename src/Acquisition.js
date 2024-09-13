@@ -4,9 +4,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LineChart } from '@mui/x-charts';
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import { Download, PauseCircle, Pending, PlayCircleFilled } from '@mui/icons-material';
+import { ArrowBack, Download, PauseCircle, Pending, PlayCircleFilled } from '@mui/icons-material';
 import CircularBuffer from './CircularBuffer';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const decibelBuffer = new CircularBuffer(3000);
 const accelerometerBuffer = new CircularBuffer(1000);
@@ -63,7 +63,7 @@ const initAccelerometer = async () => {
   }
 
   try {
-    const accelerometer = new window.Accelerometer({ frequency: 10 });
+    const accelerometer = new window.Accelerometer({ frequency: 60 });
     accelerometer.addEventListener("reading", () => {
       const now = Date.now()
       const newMetric = {
@@ -103,7 +103,7 @@ const initGyroscope = async () => {
   }
 
   try {
-    const gyroscope = new window.Gyroscope({ frequency: 10 });
+    const gyroscope = new window.Gyroscope({ frequency: 60 });
     gyroscope.addEventListener("reading", () => {
       const now = Date.now()
       const newMetric = {
@@ -221,6 +221,7 @@ const saveExcelFile = (decibelMetrics, accelerometerMetrics, gyroscopeMetrics) =
     "Angular Acceleration": metric.a,
   }));
 
+
   // 두 개의 워크시트로 데이터를 추가
   const wb = XLSX.utils.book_new();
   const wsTotal = XLSX.utils.json_to_sheet(totalData);
@@ -236,9 +237,24 @@ const saveExcelFile = (decibelMetrics, accelerometerMetrics, gyroscopeMetrics) =
   // Excel 파일로 변환
   const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
 
+  //Excel 파일명에 실행시간 추가 - YYYY_WW_MM-HH-mm_ss
+  const getFormattedDate = () => {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    const seconds = String(date.getSeconds()).padStart(2, '0');
+    
+    return `${year}-${month}-${day}_${hours}-${minutes}-${seconds}`;
+  };
+
+  const formattedDate = getFormattedDate();
+
   // 파일 저장
   const blob = new Blob([wbout], { type: "application/octet-stream" });
-  saveAs(blob, "Time_Date.xlsx");
+  saveAs(blob, `Time_Data_${formattedDate}.xlsx`);
 };
 
 const useWaveformVisualizerCanvasRef = () => {
@@ -310,6 +326,8 @@ const useWaveformVisualizerCanvasRef = () => {
 }
 
 function Acquisition() {
+  const navigate = useNavigate()
+  
   const [isMeasuring, setIsMeasuring] = useState(false);
   const [fetchMetricsIntervalId, setFetchMetricsIntervalId] = useState(null);
   const [maxRunTimeoutId, setMaxRunTimeoutId] = useState(null);
@@ -491,34 +509,46 @@ function Acquisition() {
     >
       <Paper>
         <Container>
-          <ButtonGroup>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            {/* Button Group on the left */}
+            <ButtonGroup>
+              <Button
+                variant="contained"
+                onClick={isMeasuring ? stopMeasurement : startMeasurement}
+                startIcon={!isTWatingReached ? <Pending /> : isMeasuring ? <PauseCircle /> : <PlayCircleFilled /> }
+                color={isMeasuring ? "secondary" : "primary"}
+                disabled={!isTWatingReached || isTMaxRunReached}
+                sx={{ width: "104px" }}
+              >
+                {!isTWatingReached ? "wating" : isMeasuring ? "pause " : "restart"}
+              </Button>
+              {/* <Button
+                variant="contained"
+                onClick={handleReset}
+                disabled={!isTWatingReached || isTMaxRunReached || isMeasuring}
+                startIcon={<RestartAlt />}
+              >
+                reset
+              </Button> */}
+              <Button
+                variant="contained"
+                onClick={handleSave}
+                disabled={!isTWatingReached || isMeasuring}
+                startIcon={<Download />}
+              >
+                save
+              </Button>              
+            </ButtonGroup>
+
+            {/*Return Home button on the right*/}
             <Button
-              variant="contained"
-              onClick={isMeasuring ? stopMeasurement : startMeasurement}
-              startIcon={!isTWatingReached ? <Pending /> : isMeasuring ? <PauseCircle /> : <PlayCircleFilled /> }
-              color={isMeasuring ? "secondary" : "primary"}
-              disabled={!isTWatingReached || isTMaxRunReached}
-              sx={{ width: "104px" }}
-            >
-              {!isTWatingReached ? "wating" : isMeasuring ? "pause " : "restart"}
+                variant="contained"
+                onClick={() => navigate('/')}
+                startIcon={<ArrowBack />}
+              >
+                Home
             </Button>
-            {/* <Button
-              variant="contained"
-              onClick={handleReset}
-              disabled={!isTWatingReached || isTMaxRunReached || isMeasuring}
-              startIcon={<RestartAlt />}
-            >
-              reset
-            </Button> */}
-            <Button
-              variant="contained"
-              onClick={handleSave}
-              disabled={!isTWatingReached || isMeasuring}
-              startIcon={<Download />}
-            >
-              save
-            </Button>
-          </ButtonGroup>
+          </Box>
         </Container>
       </Paper>
       <Paper>
