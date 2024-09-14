@@ -5,7 +5,7 @@ import { useState } from 'react';
 
 function Main() {
   const navigate = useNavigate();
-  const [tWaiting, setTWating] = useState(1);
+  const [tWaiting, setTWating] = useState(0);
   const [tInterval, setTInterval] = useState(1);
   const [tMaxRun, setTMaxRun] = useState(1);
 
@@ -34,7 +34,7 @@ function Main() {
           >
             Parameters
           </Typography>
-          <TextField
+          {/* <TextField
             label="Twaiting"
             variant="filled"
             type="number"
@@ -48,7 +48,7 @@ function Main() {
             onChange={(event) => {
               setTWating(event.target.value);
             }}
-          />
+          /> */}
           <TextField
             label="Tinterval (seconds)"
             variant="filled"
@@ -103,7 +103,7 @@ function Main() {
         >
           test2
         </Button>
-        v7
+        v8
       </Container>
     </Container>
   );
