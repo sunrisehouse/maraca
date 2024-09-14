@@ -173,9 +173,43 @@ export const saveExcelFile = (prevDecibelMetrics, accelerometerMetrics, gyroscop
   totalData.sort((a, b) => a.Time - b.Time);
 
   totalData.forEach((data, index) => {
+    if (data.Decibel === '') {
+      if (index > 0) {
+        let prevData = null;
+        for (let i = index - 1; i > -1; i--) {
+          if (totalData[i].Decibel !== '') {
+            prevData = totalData[i];
+            break;
+          }
+        }
+        let nextData = null;
+        for (let i = index + 1; i < totalData.length; i++) {
+          if (totalData[i].Decibel !== '') {
+            nextData = totalData[i];
+            break;
+          }
+        }
+        if (prevData && nextData) {
+          const timeRange = nextData.Time - prevData.Time;
+          const factor = (data.Time - prevData.Time) / timeRange;
+          totalData[index].Decibel = prevData.Decibel + factor * (nextData.Decibel - prevData.Decibel)
+        } else if (prevData) {
+          totalData[index].Decibel = prevData.Decibel
+        } else if (nextData) {
+          totalData[index].Decibel = nextData.Decibel
+        }
+      }
+    }
+
     if (data.Ax === '') {
       if (index > 0) {
-        const prevData = totalData[index - 1];
+        let prevData = null;
+        for (let i = index - 1; i > -1; i--) {
+          if (totalData[i].Ax !== '') {
+            prevData = totalData[i];
+            break;
+          }
+        }
         let nextData = null;
         for (let i = index + 1; i < totalData.length; i++) {
           if (totalData[i].Ax !== '') {
@@ -183,19 +217,33 @@ export const saveExcelFile = (prevDecibelMetrics, accelerometerMetrics, gyroscop
             break;
           }
         }
-        if (nextData) {
+        if (prevData && nextData) {
           const timeRange = nextData.Time - prevData.Time;
           const factor = (data.Time - prevData.Time) / timeRange;
           totalData[index].Ax = prevData.Ax + factor * (nextData.Ax - prevData.Ax)
           totalData[index].Ay = prevData.Ay + factor * (nextData.Ay - prevData.Ay)
           totalData[index].Az = prevData.Az + factor * (nextData.Az - prevData.Az)
+        } else if (prevData) {
+          totalData[index].Ax = prevData.Ax;
+          totalData[index].Ay = prevData.Ay;
+          totalData[index].Az = prevData.Az;
+        } else if (nextData) {
+          totalData[index].Ax = nextData.Ax;
+          totalData[index].Ay = nextData.Ay;
+          totalData[index].Az = nextData.Az;
         }
       }
     }
 
     if (data.Rx === '') {
       if (index > 0) {
-        const prevData = totalData[index - 1];
+        let prevData = null;
+        for (let i = index - 1; i > -1; i--) {
+          if (totalData[i].Rx !== '') {
+            prevData = totalData[i];
+            break;
+          }
+        }
         let nextData = null;
         for (let i = index + 1; i < totalData.length; i++) {
           if (totalData[i].Rx !== '') {
@@ -203,12 +251,20 @@ export const saveExcelFile = (prevDecibelMetrics, accelerometerMetrics, gyroscop
             break;
           }
         }
-        if (nextData) {
+        if (prevData && nextData) {
           const timeRange = nextData.Time - prevData.Time;
           const factor = (data.Time - prevData.Time) / timeRange;
           totalData[index].Rx = prevData.Rx + factor * (nextData.Rx - prevData.Rx)
           totalData[index].Ry = prevData.Ry + factor * (nextData.Ry - prevData.Ry)
           totalData[index].Rz = prevData.Rz + factor * (nextData.Rz - prevData.Rz)
+        } else if (prevData) {
+          totalData[index].Rx = prevData.Rx;
+          totalData[index].Ry = prevData.Ry;
+          totalData[index].Rz = prevData.Rz;
+        } else if (nextData) {
+          totalData[index].Rx = nextData.Rx;
+          totalData[index].Ry = nextData.Ry;
+          totalData[index].Rz = nextData.Rz;
         }
       }
     }
