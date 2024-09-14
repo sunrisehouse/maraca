@@ -126,6 +126,13 @@ export const saveExcelFile = (prevDecibelMetrics, accelerometerMetrics, gyroscop
       totalData.push({
         Time: prevT + factor * sampleIdx,
         Decibel: sample,
+        Ax: '',
+        Ay: '',
+        Az: '',
+        Rx: '',
+        Ry: '',
+        Rz: '',
+
       });
     });
   });
@@ -192,7 +199,7 @@ export const saveExcelFile = (prevDecibelMetrics, accelerometerMetrics, gyroscop
         if (prevData && nextData) {
           const timeRange = nextData.Time - prevData.Time;
           const factor = timeRange > 0 ? (data.Time - prevData.Time) / timeRange : 0;
-          totalData[index].Decibel = prevData.Decibel + factor * (nextData.Decibel - prevData.Decibel)
+          totalData[index].Decibel = prevData.Decibel + factor * (nextData.Decibel - prevData.Decibel);
         } else if (prevData) {
           totalData[index].Decibel = prevData.Decibel
         } else if (nextData) {
@@ -271,7 +278,6 @@ export const saveExcelFile = (prevDecibelMetrics, accelerometerMetrics, gyroscop
   });
 
   const decibelData = [];
-
   decibelMetrics.forEach(metric => {
     // Create a new object starting with Time and Decibel
     const newMetric = {
