@@ -172,9 +172,9 @@ function Acquisition() {
       setGyroscope(sensor);
     }
 
-    // initAudioContext();
-    initAccel();
-    initGyro();
+    initAudioContext();
+    // initAccel();
+    // initGyro();
   
     setRestartTime(Date.now());
     setMaxRunTimeout(remainingTime);
