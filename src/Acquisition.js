@@ -124,8 +124,8 @@ function Acquisition() {
   }
 
   const startMeasurement = () => {
-    const canvas = canvasRef.current;
-    const canvasCtx = canvas.getContext('2d');
+    // const canvas = canvasRef.current;
+    // const canvasCtx = canvas.getContext('2d');
     const initAudioContext = async () => {
       const { audioContext: sensor } = await initAudio(({ samples }) => {
         const rms = Math.sqrt(samples.reduce((sum, sample) => sum + sample * sample, 0) / samples.length);
@@ -137,7 +137,7 @@ function Acquisition() {
           {t: Date.now() - startTime, d: decibel, samples },
         ]);
 
-        drawWaveform({ canvas, canvasCtx, samples });
+        // drawWaveform({ canvas, canvasCtx, samples });
       }) || { audioContext: null };
       setAudioContext(sensor);
     }

@@ -2,30 +2,30 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 
 export const initAudio = async (onMessage) => {
-  // try {
-  //   const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-  //   await audioContext.audioWorklet.addModule('/maraca/build/audio-processor.js');
-  //   const audioNode = new AudioWorkletNode(audioContext, 'audio-processor');
+  try {
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    await audioContext.audioWorklet.addModule('/maraca/build/audio-processor.js');
+    const audioNode = new AudioWorkletNode(audioContext, 'audio-processor');
   
-  //   // 사용자로부터 마이크 접근 권한 요청
-  //   const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    // 사용자로부터 마이크 접근 권한 요청
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
   
-  //   // 마이크 스트림 생성
-  //   const microphone = audioContext.createMediaStreamSource(stream);
+    // 마이크 스트림 생성
+    const microphone = audioContext.createMediaStreamSource(stream);
   
-  //   // 마이크 -> AudioWorkletNode -> 출력
-  //   microphone.connect(audioNode);
-  //   audioNode.connect(audioContext.destination);
+    // 마이크 -> AudioWorkletNode -> 출력
+    microphone.connect(audioNode);
+    audioNode.connect(audioContext.destination);
   
-  //   audioNode.port.onmessage = (event) => {
-  //     const { samples } = event.data;
-  //     onMessage({ samples });
-  //   };
-  //   return { audioContext }
-  // } catch (error) {
-  //   console.error(error);
-  // }
-  // return null;
+    audioNode.port.onmessage = (event) => {
+      const { samples } = event.data;
+      onMessage({ samples });
+    };
+    return { audioContext }
+  } catch (error) {
+    console.error(error);
+  }
+  return null;
 }
 
 export const initAccelerometer = async (onReading) => {
