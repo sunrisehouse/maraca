@@ -41,22 +41,22 @@ export const initAccelerometer = async (onReading) => {
     return () => {};
   }
 
-  try {
-    const accelerometer = new window.Accelerometer({ frequency: 1000 });
-    accelerometer.addEventListener("reading", () => {
-      onReading({ accelerometer })
-    });
-    accelerometer.start();
-    return { accelerometer }
-  } catch (error) {
-    if (error.name === 'SecurityError') {
-      alert('Sensor construction was blocked by the Permissions Policy.');
-    } else if (error.name === 'ReferenceError') {
-      alert('Sensor is not supported by the User Agent.');
-    } else {
-      alert(`${error.name} ${error.message}`);
-    }
-  }
+  // try {
+  //   const accelerometer = new window.Accelerometer({ frequency: 1000 });
+  //   accelerometer.addEventListener("reading", () => {
+  //     onReading({ accelerometer })
+  //   });
+  //   accelerometer.start();
+  //   return { accelerometer }
+  // } catch (error) {
+  //   if (error.name === 'SecurityError') {
+  //     alert('Sensor construction was blocked by the Permissions Policy.');
+  //   } else if (error.name === 'ReferenceError') {
+  //     alert('Sensor is not supported by the User Agent.');
+  //   } else {
+  //     alert(`${error.name} ${error.message}`);
+  //   }
+  // }
   return null;
 }
 
@@ -73,22 +73,22 @@ export const initGyroscope = async (onReading) => {
     return () => {};
   }
 
-  try {
-    const gyroscope = new window.Gyroscope({ frequency: 1000 });
-    gyroscope.addEventListener("reading", () => {
-      onReading(gyroscope)
-    });
-    gyroscope.start();
-    return { gyroscope }
-  } catch (error) {
-    if (error.name === 'SecurityError') {
-      alert('Sensor construction was blocked by the Permissions Policy.');
-    } else if (error.name === 'ReferenceError') {
-      alert('Sensor is not supported by the User Agent.');
-    } else {
-      alert(`${error.name} ${error.message}`);
-    }
-  }
+  // try {
+  //   const gyroscope = new window.Gyroscope({ frequency: 1000 });
+  //   gyroscope.addEventListener("reading", () => {
+  //     onReading(gyroscope)
+  //   });
+  //   gyroscope.start();
+  //   return { gyroscope }
+  // } catch (error) {
+  //   if (error.name === 'SecurityError') {
+  //     alert('Sensor construction was blocked by the Permissions Policy.');
+  //   } else if (error.name === 'ReferenceError') {
+  //     alert('Sensor is not supported by the User Agent.');
+  //   } else {
+  //     alert(`${error.name} ${error.message}`);
+  //   }
+  // }
   return null;
 };
 

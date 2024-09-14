@@ -173,8 +173,8 @@ function Acquisition() {
     }
 
     initAudioContext();
-    // initAccel();
-    // initGyro();
+    initAccel();
+    initGyro();
   
     setRestartTime(Date.now());
     setMaxRunTimeout(remainingTime);
