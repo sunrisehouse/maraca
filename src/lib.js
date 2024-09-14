@@ -18,8 +18,8 @@ export const initAudio = async (onMessage) => {
     audioNode.connect(audioContext.destination);
   
     audioNode.port.onmessage = (event) => {
-      const { samples } = event.data;
-      onMessage({ samples });
+      const { samples, t } = event.data;
+      onMessage({ samples, t });
     };
     return { audioContext }
   } catch (error) {
@@ -114,7 +114,7 @@ export const saveExcelFile = (prevDecibelMetrics, accelerometerMetrics, gyroscop
         acc.push({ t: cur.t, d: cur.d, samples: [...cur.samples] });
       }
     } else {
-      acc.push(cur);
+      acc.push({ t: cur.t, d: cur.d, samples: [...cur.samples] });
     }
     return acc;
   }, []);

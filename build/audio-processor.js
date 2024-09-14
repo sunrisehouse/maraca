@@ -5,7 +5,7 @@ class MyAudioProcessor extends AudioWorkletProcessor {
 
     if (samples && samples.length > 0) {
       // 메인 스레드로 전송
-      this.port.postMessage({ samples });
+      this.port.postMessage({ t: Date.now(), samples });
     }
 
     return true;

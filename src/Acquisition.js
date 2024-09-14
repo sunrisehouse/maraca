@@ -128,14 +128,14 @@ function Acquisition() {
     const canvas = canvasRef.current;
     const canvasCtx = canvas.getContext('2d');
     const initAudioContext = async () => {
-      const { audioContext: sensor } = await initAudio(({ samples }) => {
+      const { audioContext: sensor } = await initAudio(({ samples, t }) => {
         const rms = Math.sqrt(samples.reduce((sum, sample) => sum + sample * sample, 0) / samples.length);
         // dB 계산: 최소 RMS 값을 설정하여 로그의 무한대를 방지
         const minRMS = 1e-10; // 최소 RMS 값 설정
         const decibel = 20 * Math.log10(Math.max(rms, minRMS));
         setDecibelMetrics((prevData) => [
           ...prevData,
-          {t: Date.now() - startTime, d: decibel, samples },
+          {t: t - startTime, d: decibel, samples },
         ]);
 
         drawWaveform({ canvas, canvasCtx, samples });
