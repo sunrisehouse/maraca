@@ -143,11 +143,11 @@ function Acquisition() {
       setAudioContext(sensor);
     }
     const initAccel = async () => {
-      const { accelerometer: sensor } = await initAccelerometer(({ x, y, z }) => {
+      const { accelerometer: sensor } = await initAccelerometer(({ t, x, y, z }) => {
         setAccelerometerMetrics((prevData) => [
           ...prevData,
           {
-            t: Date.now() - startTime,
+            t: t - startTime,
             x, y, z,
             a: Math.sqrt(x ** 2 + y ** 2 + z ** 2),
           },
@@ -156,11 +156,11 @@ function Acquisition() {
       setAccelerometer(sensor)
     }
     const initGyro = async () => {
-      const { gyroscope: sensor } = await initGyroscope(({ x, y, z }) => {
+      const { gyroscope: sensor } = await initGyroscope(({ t, x, y, z }) => {
         setGyroscopeMetrics((prevData) => [
           ...prevData,
           {
-            t: Date.now() - startTime,
+            t: t - startTime,
             x, y, z,
             a: Math.sqrt(x ** 2 + y ** 2 + z ** 2),
           },
@@ -185,9 +185,9 @@ function Acquisition() {
     }, tWaiting);
   }, []);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true);
-    saveExcelFile(decibelMetrics, accelerometerMetrics, gyroscopeMetrics);
+    await saveExcelFile(decibelMetrics, accelerometerMetrics, gyroscopeMetrics);
     setIsSaving(false);
   };
 

@@ -42,9 +42,10 @@ export const initAccelerometer = async (onReading) => {
       return () => {};
     }
 
-    const accelerometer = new window.Accelerometer({ frequency: 1000 });
+    const accelerometer = new window.Accelerometer({ frequency: 100 });
     accelerometer.addEventListener("reading", () => {
       onReading({
+        t: Date.now(),
         x: accelerometer.x,
         y: accelerometer.y,
         z: accelerometer.z,
@@ -78,9 +79,10 @@ export const initGyroscope = async (onReading) => {
       return () => {};
     }
 
-    const gyroscope = new window.Gyroscope({ frequency: 1000 });
+    const gyroscope = new window.Gyroscope({ frequency: 100 });
     gyroscope.addEventListener("reading", () => {
       onReading({
+        t: Date.now(),
         x: gyroscope.x,
         y: gyroscope.y,
         z: gyroscope.z,
@@ -100,17 +102,33 @@ export const initGyroscope = async (onReading) => {
   return null;
 };
 
-export const saveExcelFile = (decibelMetrics, accelerometerMetrics, gyroscopeMetrics) => {
-  const totalData = decibelMetrics.map(metric => ({
-    Time: metric.t,
-    Decibel: metric.d,
-    Ax: '',
-    Ay: '',
-    Az: '',
-    Rx: '',
-    Ry: '',
-    Rz: '',
-  }));
+export const saveExcelFile = (prevDecibelMetrics, accelerometerMetrics, gyroscopeMetrics) => {
+  const totalData = [];
+
+  prevDecibelMetrics.sort((a, b) => a.t - b.t);
+  const decibelMetrics = prevDecibelMetrics.reduce((acc, cur) => {
+    if (acc.length > 0) {
+      if (acc[acc.length - 1].t === cur.t) {
+        acc[acc.length - 1].samples.push(...cur.samples);
+      } else {
+        acc.push({ t: cur.t, d: cur.d, samples: [...cur.samples] });
+      }
+    } else {
+      acc.push(cur);
+    }
+    return acc;
+  }, []);
+  
+  decibelMetrics.forEach((metric, metricIdx) => {
+    const prevT = metricIdx === 0 ?  decibelMetrics[0].t - 10 : decibelMetrics[metricIdx - 1].t;
+    const factor = (metric.t - prevT) / metric.samples.length;
+    metric.samples.forEach((sample, sampleIdx) => {
+      totalData.push({
+        Time: prevT + factor * sampleIdx,
+        Decibel: sample,
+      });
+    });
+  });
 
   accelerometerMetrics.forEach(metric => {
     const matchingData = totalData.find(data => data.Time === metric.t);
@@ -155,24 +173,6 @@ export const saveExcelFile = (decibelMetrics, accelerometerMetrics, gyroscopeMet
   totalData.sort((a, b) => a.Time - b.Time);
 
   totalData.forEach((data, index) => {
-    if (data.Decibel === '') {
-      if (index > 0) {
-        const prevData = totalData[index - 1];
-        let nextData = null;
-        for (let i = index + 1; i < totalData.length; i++) {
-          if (totalData[i].Decibel !== '') {
-            nextData = totalData[i];
-            break;
-          }
-        }
-        if (nextData) {
-          const timeRange = nextData.Time - prevData.Time;
-          const factor = (data.Time - prevData.Time) / timeRange;
-          totalData[index].Decibel = prevData.Decibel + factor * (nextData.Decibel - prevData.Decibel)
-        }
-      }
-    }
-
     if (data.Ax === '') {
       if (index > 0) {
         const prevData = totalData[index - 1];
