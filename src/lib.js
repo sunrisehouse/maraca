@@ -29,66 +29,74 @@ export const initAudio = async (onMessage) => {
 }
 
 export const initAccelerometer = async (onReading) => {
-  const accPermissionResult = await navigator.permissions.query({ name: "accelerometer" });
+  try {
+    const accPermissionResult = await navigator.permissions.query({ name: "accelerometer" });
   
-  if (accPermissionResult.state === "denied") {
-    alert("Permission to use accelerometer. gyroscope sensor is denied");
-    return () => {};
-  }
-  
-  if (!('Accelerometer' in window)) {
-    alert('브라우저가 센서를 지원하지 않습니다.');
-    return () => {};
-  }
+    if (accPermissionResult.state === "denied") {
+      alert("Permission to use accelerometer. gyroscope sensor is denied");
+      return () => {};
+    }
+    
+    if (!('Accelerometer' in window)) {
+      alert('브라우저가 센서를 지원하지 않습니다.');
+      return () => {};
+    }
 
-  // try {
-  //   const accelerometer = new window.Accelerometer({ frequency: 1000 });
-  //   accelerometer.addEventListener("reading", () => {
-  //     onReading({ accelerometer })
-  //   });
-  //   accelerometer.start();
-  //   return { accelerometer }
-  // } catch (error) {
-  //   if (error.name === 'SecurityError') {
-  //     alert('Sensor construction was blocked by the Permissions Policy.');
-  //   } else if (error.name === 'ReferenceError') {
-  //     alert('Sensor is not supported by the User Agent.');
-  //   } else {
-  //     alert(`${error.name} ${error.message}`);
-  //   }
-  // }
+    const accelerometer = new window.Accelerometer({ frequency: 1000 });
+    accelerometer.addEventListener("reading", () => {
+      onReading({
+        x: accelerometer.x,
+        y: accelerometer.y,
+        z: accelerometer.z,
+      })
+    });
+    accelerometer.start();
+    return { accelerometer }
+  } catch (error) {
+    if (error.name === 'SecurityError') {
+      alert('Sensor construction was blocked by the Permissions Policy.');
+    } else if (error.name === 'ReferenceError') {
+      alert('Sensor is not supported by the User Agent.');
+    } else {
+      alert(`${error.name} ${error.message}`);
+    }
+  }
   return null;
 }
 
 export const initGyroscope = async (onReading) => {
-  const gyroPermissionResult = await navigator.permissions.query({ name: "gyroscope" });
+  try {
+    const gyroPermissionResult = await navigator.permissions.query({ name: "gyroscope" });
   
-  if (gyroPermissionResult.state === "denied") {
-    alert("Permission to use accelerometer. gyroscope sensor is denied");
-    return () => {};
-  }
+    if (gyroPermissionResult.state === "denied") {
+      alert("Permission to use accelerometer. gyroscope sensor is denied");
+      return () => {};
+    }
 
-  if (!('Gyroscope' in window)) {
-    alert('브라우저가 센서를 지원하지 않습니다.');
-    return () => {};
+    if (!('Gyroscope' in window)) {
+      alert('브라우저가 센서를 지원하지 않습니다.');
+      return () => {};
+    }
+    
+    const gyroscope = new window.Gyroscope({ frequency: 1000 });
+    gyroscope.addEventListener("reading", () => {
+      onReading({
+        x: gyroscope.x,
+        y: gyroscope.y,
+        z: gyroscope.z,
+      })
+    });
+    gyroscope.start();
+    return { gyroscope }
+  } catch (error) {
+    if (error.name === 'SecurityError') {
+      alert('Sensor construction was blocked by the Permissions Policy.');
+    } else if (error.name === 'ReferenceError') {
+      alert('Sensor is not supported by the User Agent.');
+    } else {
+      alert(`${error.name} ${error.message}`);
+    }
   }
-
-  // try {
-  //   const gyroscope = new window.Gyroscope({ frequency: 1000 });
-  //   gyroscope.addEventListener("reading", () => {
-  //     onReading(gyroscope)
-  //   });
-  //   gyroscope.start();
-  //   return { gyroscope }
-  // } catch (error) {
-  //   if (error.name === 'SecurityError') {
-  //     alert('Sensor construction was blocked by the Permissions Policy.');
-  //   } else if (error.name === 'ReferenceError') {
-  //     alert('Sensor is not supported by the User Agent.');
-  //   } else {
-  //     alert(`${error.name} ${error.message}`);
-  //   }
-  // }
   return null;
 };
 
@@ -103,21 +111,6 @@ export const saveExcelFile = (decibelMetrics, accelerometerMetrics, gyroscopeMet
     Ry: '',
     Rz: '',
   }));
-
-  const findClosestMetric = (metrics, time) => {
-    let closestMetric = null;
-    let closestDiff = Infinity;
-  
-    metrics.forEach(metric => {
-      const diff = Math.abs(metric.t - time);
-      if (diff < closestDiff) {
-        closestMetric = metric;
-        closestDiff = diff;
-      }
-    });
-  
-    return closestMetric;
-  };
 
   accelerometerMetrics.forEach(metric => {
     const matchingData = totalData.find(data => data.Time === metric.t);

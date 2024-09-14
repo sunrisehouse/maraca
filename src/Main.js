@@ -32,7 +32,7 @@ function Main() {
               fontWeight: 700,
             }}
           >
-            Parameters v1
+            Parameters v2
           </Typography>
           <TextField
             label="Twaiting"

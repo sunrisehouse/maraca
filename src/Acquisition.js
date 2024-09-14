@@ -142,30 +142,26 @@ function Acquisition() {
       setAudioContext(sensor);
     }
     const initAccel = async () => {
-      const { accelerometer: sensor } = await initAccelerometer(({ accelerometer }) => {
+      const { accelerometer: sensor } = await initAccelerometer(({ x, y, z }) => {
         setAccelerometerMetrics((prevData) => [
           ...prevData,
           {
             t: Date.now() - startTime,
-            x: accelerometer.x,
-            y: accelerometer.y,
-            z: accelerometer.z,
-            a: Math.sqrt(accelerometer.x ** 2 + accelerometer.y ** 2 + accelerometer.z ** 2),
+            x, y, z,
+            a: Math.sqrt(x ** 2 + y ** 2 + z ** 2),
           },
         ]);
       }) || { accelerometer: null };
       setAccelerometer(sensor)
     }
     const initGyro = async () => {
-      const { gyroscope: sensor } = await initGyroscope(({ gyroscope }) => {
+      const { gyroscope: sensor } = await initGyroscope(({ x, y, z }) => {
         setGyroscopeMetrics((prevData) => [
           ...prevData,
           {
             t: Date.now() - startTime,
-            x: gyroscope.x,
-            y: gyroscope.y,
-            z: gyroscope.z,
-            a: Math.sqrt(gyroscope.x ** 2 + gyroscope.y ** 2 + gyroscope.z ** 2),
+            x, y, z,
+            a: Math.sqrt(x ** 2 + y ** 2 + z ** 2),
           },
         ]);
       }) || { gyroscope: null };
