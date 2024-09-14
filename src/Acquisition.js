@@ -172,7 +172,7 @@ function Acquisition() {
       setGyroscope(sensor);
     }
 
-    // initAudioContext();
+    initAudioContext();
     initAccel();
     initGyro();
   

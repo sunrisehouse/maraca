@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/maraca/build/static/css/main.32d18f5b.css",
-    "main.js": "/maraca/build/static/js/main.91f2d764.js",
+    "main.js": "/maraca/build/static/js/main.44ef2c2c.js",
     "static/js/453.57cf5e9b.chunk.js": "/maraca/build/static/js/453.57cf5e9b.chunk.js",
     "static/media/roboto-latin-700-normal.woff2": "/maraca/build/static/media/roboto-latin-700-normal.4535474e1cf8598695ad.woff2",
     "static/media/roboto-latin-500-normal.woff2": "/maraca/build/static/media/roboto-latin-500-normal.7077203b1982951ecf76.woff2",
@@ -61,11 +61,11 @@
     "static/media/roboto-greek-ext-400-normal.woff": "/maraca/build/static/media/roboto-greek-ext-400-normal.16eb83b4a3b1ea994243.woff",
     "index.html": "/maraca/build/index.html",
     "main.32d18f5b.css.map": "/maraca/build/static/css/main.32d18f5b.css.map",
-    "main.91f2d764.js.map": "/maraca/build/static/js/main.91f2d764.js.map",
+    "main.44ef2c2c.js.map": "/maraca/build/static/js/main.44ef2c2c.js.map",
     "453.57cf5e9b.chunk.js.map": "/maraca/build/static/js/453.57cf5e9b.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.32d18f5b.css",
-    "static/js/main.91f2d764.js"
+    "static/js/main.44ef2c2c.js"
   ]
 }
