@@ -191,7 +191,7 @@ export const saveExcelFile = (prevDecibelMetrics, accelerometerMetrics, gyroscop
         }
         if (prevData && nextData) {
           const timeRange = nextData.Time - prevData.Time;
-          const factor = (data.Time - prevData.Time) / timeRange;
+          const factor = timeRange > 0 ? (data.Time - prevData.Time) / timeRange : 0;
           totalData[index].Decibel = prevData.Decibel + factor * (nextData.Decibel - prevData.Decibel)
         } else if (prevData) {
           totalData[index].Decibel = prevData.Decibel
@@ -219,7 +219,7 @@ export const saveExcelFile = (prevDecibelMetrics, accelerometerMetrics, gyroscop
         }
         if (prevData && nextData) {
           const timeRange = nextData.Time - prevData.Time;
-          const factor = (data.Time - prevData.Time) / timeRange;
+          const factor = timeRange > 0 ? (data.Time - prevData.Time) / timeRange : 0;
           totalData[index].Ax = prevData.Ax + factor * (nextData.Ax - prevData.Ax)
           totalData[index].Ay = prevData.Ay + factor * (nextData.Ay - prevData.Ay)
           totalData[index].Az = prevData.Az + factor * (nextData.Az - prevData.Az)
@@ -253,7 +253,7 @@ export const saveExcelFile = (prevDecibelMetrics, accelerometerMetrics, gyroscop
         }
         if (prevData && nextData) {
           const timeRange = nextData.Time - prevData.Time;
-          const factor = (data.Time - prevData.Time) / timeRange;
+          const factor = timeRange > 0 ? (data.Time - prevData.Time) / timeRange : 0;
           totalData[index].Rx = prevData.Rx + factor * (nextData.Rx - prevData.Rx)
           totalData[index].Ry = prevData.Ry + factor * (nextData.Ry - prevData.Ry)
           totalData[index].Rz = prevData.Rz + factor * (nextData.Rz - prevData.Rz)
