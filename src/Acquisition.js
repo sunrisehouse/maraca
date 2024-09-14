@@ -137,7 +137,7 @@ function Acquisition() {
           {t: Date.now() - startTime, d: decibel, samples },
         ]);
 
-        drawWaveform({ canvas, canvasCtx, samples });
+        // drawWaveform({ canvas, canvasCtx, samples });
       }) || { audioContext: null };
       setAudioContext(sensor);
     }
