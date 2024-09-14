@@ -1,5 +1,5 @@
 import './Acquisition.css';
-import { Box, Button, ButtonGroup, Container, Paper, Typography } from '@mui/material';
+import { Backdrop, Box, Button, ButtonGroup, CircularProgress, Container, Paper, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LineChart } from '@mui/x-charts';
 import { ArrowBack, Download, PauseCircle, Pending, PlayCircleFilled } from '@mui/icons-material';
@@ -19,6 +19,7 @@ function Acquisition() {
   const [audioContext, setAudioContext] = useState(null);
   const [accelerometer, setAccelerometer] = useState(null);
   const [gyroscope, setGyroscope] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const [decibelMetrics, setDecibelMetrics] = useState([]);
   const [accelerometerMetrics, setAccelerometerMetrics] = useState([]);
@@ -185,7 +186,9 @@ function Acquisition() {
   }, []);
 
   const handleSave = () => {
+    setIsSaving(true);
     saveExcelFile(decibelMetrics, accelerometerMetrics, gyroscopeMetrics);
+    setIsSaving(false);
   };
 
   const decibelMetric = decibelMetrics.length > 0
@@ -311,6 +314,12 @@ function Acquisition() {
           </Box>
         </Container>
       </Paper>
+      <Backdrop
+        sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
+        open={isSaving}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </Container>
   );
 }

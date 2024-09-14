@@ -77,7 +77,7 @@ export const initGyroscope = async (onReading) => {
       alert('브라우저가 센서를 지원하지 않습니다.');
       return () => {};
     }
-    
+
     const gyroscope = new window.Gyroscope({ frequency: 1000 });
     gyroscope.addEventListener("reading", () => {
       onReading({
