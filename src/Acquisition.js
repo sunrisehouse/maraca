@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LineChart } from '@mui/x-charts';
 import { ArrowBack, Download, PauseCircle, Pending, PlayCircleFilled } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { initAccelerometer, initAudio, initGyroscope, saveExcelFile, useWaveformVisualizerCanvasRef } from './lib';
+import { initAccelerometer, initAudio, initGyroscope, saveExcelFile, saveExcelFileNoInterpolation, useWaveformVisualizerCanvasRef } from './lib';
 import CircularBuffer from "./CircularBuffer";
 
 const decibelBuffer = new CircularBuffer(3000);
@@ -115,13 +115,6 @@ function Acquisition() {
 
     canvasCtx.lineTo(canvas.width, canvas.height / 2);
     canvasCtx.stroke();
-
-    // // 가운데 가로선 그리기
-    // canvasCtx.beginPath();
-    // canvasCtx.moveTo(0, canvas.height / 2);
-    // canvasCtx.lineTo(canvas.width, canvas.height / 2);
-    // canvasCtx.strokeStyle = '#02B2AF';
-    // canvasCtx.stroke();
   }
 
   const startMeasurement = () => {
@@ -185,10 +178,42 @@ function Acquisition() {
     }, tWaiting);
   }, []);
 
-  const handleSave = async () => {
+  const handleSave = () => {
     setIsSaving(true);
-    await saveExcelFile(decibelMetrics, accelerometerMetrics, gyroscopeMetrics);
-    setIsSaving(false);
+    setTimeout(() => {
+      try {
+        saveExcelFile(
+          decibelMetrics,
+          accelerometerMetrics,
+          gyroscopeMetrics,
+        );
+      } catch (error) {
+        console.error("파일 저장 중 오류가 발생했습니다.", error);
+        alert("파일 저장 중 오류가 발생했습니다.");
+      } finally {
+        setIsSaving(false);
+      }
+      
+    }, 400);
+  };
+
+  const handleSaveNoInterpolation = () => {
+    setIsSaving(true);
+    setTimeout(() => {
+      try {
+        saveExcelFileNoInterpolation(
+          decibelMetrics,
+          accelerometerMetrics,
+          gyroscopeMetrics,
+        );
+      } catch (error) {
+        console.error("파일 저장 중 오류가 발생했습니다.", error);
+        alert("파일 저장 중 오류가 발생했습니다.");
+      } finally {
+        setIsSaving(false);
+      }
+      
+    }, 400);
   };
 
   const decibelMetric = decibelMetrics.length > 0
@@ -202,7 +227,7 @@ function Acquisition() {
   const gyroscopeMetric = gyroscopeMetrics.length > 0
     ? gyroscopeMetrics[gyroscopeMetrics.length - 1]
     : { t: 0, x: 0, y: 0, z: 0, a: 0 };
-
+    
   return (
     <Container
       maxWidth="sm"
@@ -249,6 +274,16 @@ function Acquisition() {
                 Home
             </Button>
           </Box>
+        </Container>
+        <Container>
+        <Button
+          variant="contained"
+          onClick={handleSaveNoInterpolation}
+          disabled={!isTWatingReached || isMeasuring}
+          startIcon={<Download />}
+        >
+          no interpolation save
+        </Button>   
         </Container>
       </Paper>
       <Paper>
