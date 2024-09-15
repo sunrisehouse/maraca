@@ -118,11 +118,10 @@ function Acquisition() {
   }
 
   const drawLineChart = ({ canvas, canvasCtx, data }) => {
-    // 캔버스 크기
     const canvasWidth = canvas.width;
     const canvasHeight = canvas.height;
     
-    const maxDataValue = 20; // 리스트의 최대값 (10)
+    const maxDataValue = 30; // 리스트의 최대값 (10)
     const minDataValue = 0; // 리스트의 최소값 (0)
     const scaleY = canvasHeight / (maxDataValue - minDataValue); // 높이 스케일
     const stepX = canvasWidth / (data.length - 1);
@@ -142,16 +141,6 @@ function Acquisition() {
     canvasCtx.strokeStyle = '#02B2AF';
     canvasCtx.lineWidth = 2;
     canvasCtx.stroke();
-
-    // 데이터 포인트 그리기
-    canvasCtx.fillStyle = '#02B2AF';
-    for (let i = 0; i < data.length; i++) {
-      const x = i * stepX;
-      const y = canvasHeight - data[i] * scaleY;
-      canvasCtx.beginPath();
-      canvasCtx.arc(x, y, 5, 0, 2 * Math.PI); // 각 데이터 포인트를 원으로 표시
-      canvasCtx.fill();
-    }
   };
 
   useEffect(() => {
@@ -174,7 +163,15 @@ function Acquisition() {
     if (accelCanvasRef) {
       const accelCanvas = accelCanvasRef.current;
       const accelCanvasCtx = accelCanvas.getContext('2d');
-      const data = accelerometerMetrics.map((metric) => metric.a);
+      let data = accelerometerMetrics.map((metric) => metric.a);
+      const requiredLength = 128;
+      if (data.length > requiredLength) {
+        data = data.slice(-requiredLength)
+      } else {
+        const padding = Array(requiredLength - data.length).fill(0);
+        data = [...data, ...padding]
+      }
+      console.log(data)
       const draw = () => {
         drawLineChart({
           canvas: accelCanvas,
@@ -190,8 +187,14 @@ function Acquisition() {
     if (gyroCanvasRef) {
       const gyroCanvas = gyroCanvasRef.current;
       const gyroCanvasCtx = gyroCanvas.getContext('2d');
-      const data = gyroscopeMetrics.map((metric) => metric.a);
-
+      let data = gyroscopeMetrics.map((metric) => metric.a);
+      const requiredLength = 128;
+      if (data.length > requiredLength) {
+        data = data.slice(-requiredLength)
+      } else {
+        const padding = Array(requiredLength - data.length).fill(0);
+        data = [...data, ...padding]
+      }
       const draw = () => {
         drawLineChart({
           canvas: gyroCanvas,
