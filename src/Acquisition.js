@@ -100,9 +100,7 @@ function Acquisition() {
     const sliceWidth = canvas.width / data.length;
     let x = 0;
 
-    // 파형 데이터를 기반으로 선 그리기
     for (let i = 0; i < data.length; i++) {
-      // 0에서 255 사이의 값을 -1에서 1 사이로 정규화
       const v = data[i]
       const y = (v * canvas.height) / 2 + canvas.height / 2;
 
@@ -118,6 +116,43 @@ function Acquisition() {
     canvasCtx.lineTo(canvas.width, canvas.height / 2);
     canvasCtx.stroke();
   }
+
+  const drawLineChart = ({ canvas, canvasCtx, data }) => {
+    // 캔버스 크기
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
+    
+    const maxDataValue = 20; // 리스트의 최대값 (10)
+    const minDataValue = 0; // 리스트의 최소값 (0)
+    const scaleY = canvasHeight / (maxDataValue - minDataValue); // 높이 스케일
+    const stepX = canvasWidth / (data.length - 1);
+    
+    canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight); // 캔버스 초기화
+    
+    canvasCtx.beginPath();
+    canvasCtx.moveTo(0, canvasHeight - data[0] * scaleY); // 첫번째 점
+
+    for (let i = 1; i < data.length; i++) {
+      const x = i * stepX; // X축 좌표
+      const y = canvasHeight - data[i] * scaleY; // Y축 좌표 (값을 캔버스 높이에 맞춰 반전)
+
+      canvasCtx.lineTo(x, y); // 다음 점으로 선을 이어감
+    }
+
+    canvasCtx.strokeStyle = '#02B2AF';
+    canvasCtx.lineWidth = 2;
+    canvasCtx.stroke();
+
+    // 데이터 포인트 그리기
+    canvasCtx.fillStyle = '#02B2AF';
+    for (let i = 0; i < data.length; i++) {
+      const x = i * stepX;
+      const y = canvasHeight - data[i] * scaleY;
+      canvasCtx.beginPath();
+      canvasCtx.arc(x, y, 5, 0, 2 * Math.PI); // 각 데이터 포인트를 원으로 표시
+      canvasCtx.fill();
+    }
+  };
 
   useEffect(() => {
     if (decibelCanvasRef && decibelMetrics.length > 0) {
@@ -141,7 +176,7 @@ function Acquisition() {
       const accelCanvasCtx = accelCanvas.getContext('2d');
       const data = accelerometerMetrics.map((metric) => metric.a);
       const draw = () => {
-        drawWaveform({
+        drawLineChart({
           canvas: accelCanvas,
           canvasCtx: accelCanvasCtx,
           data,
@@ -156,8 +191,9 @@ function Acquisition() {
       const gyroCanvas = gyroCanvasRef.current;
       const gyroCanvasCtx = gyroCanvas.getContext('2d');
       const data = gyroscopeMetrics.map((metric) => metric.a);
+
       const draw = () => {
-        drawWaveform({
+        drawLineChart({
           canvas: gyroCanvas,
           canvasCtx: gyroCanvasCtx,
           data,
