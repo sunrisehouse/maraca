@@ -37,7 +37,9 @@ function Acquisition() {
 
   const startTime = useMemo(() => Date.now());
 
-  const canvasRef = useRef(null);
+  const decibelCanvasRef = useRef(null);
+  const accelCanvasRef = useRef(null);
+  const gyroCanvasRef = useRef(null);
 
   const destroyAllSensors = useCallback(() => {
     setAudioContext(ac => {
@@ -84,7 +86,7 @@ function Acquisition() {
     }, time));
   };
 
-  const drawWaveform = ({ canvas, canvasCtx, samples }) => {
+  const drawWaveform = ({ canvas, canvasCtx, data }) => {
     // Canvas 설정
     canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
     canvasCtx.fillStyle = 'white';
@@ -95,13 +97,13 @@ function Acquisition() {
     canvasCtx.strokeStyle = '#02B2AF';
     canvasCtx.beginPath();
 
-    const sliceWidth = canvas.width / samples.length;
+    const sliceWidth = canvas.width / data.length;
     let x = 0;
 
     // 파형 데이터를 기반으로 선 그리기
-    for (let i = 0; i < samples.length; i++) {
+    for (let i = 0; i < data.length; i++) {
       // 0에서 255 사이의 값을 -1에서 1 사이로 정규화
-      const v = samples[i]
+      const v = data[i]
       const y = (v * canvas.height) / 2 + canvas.height / 2;
 
       if (i === 0) {
@@ -117,9 +119,55 @@ function Acquisition() {
     canvasCtx.stroke();
   }
 
+  useEffect(() => {
+    if (decibelCanvasRef && decibelMetrics.length > 0) {
+      const decibelCanvas = decibelCanvasRef.current;
+      const decibelCanvasCtx = decibelCanvas.getContext('2d');
+      const data = decibelMetrics[decibelMetrics.length - 1].samples;
+      const draw = () => {
+        drawWaveform({
+          canvas: decibelCanvas,
+          canvasCtx: decibelCanvasCtx,
+          data
+        });
+      };
+      requestAnimationFrame(draw);
+    }
+  }, [decibelMetrics]);
+
+  useEffect(() => {
+    if (accelCanvasRef) {
+      const accelCanvas = accelCanvasRef.current;
+      const accelCanvasCtx = accelCanvas.getContext('2d');
+      const data = accelerometerMetrics.map((metric) => metric.a);
+      const draw = () => {
+        drawWaveform({
+          canvas: accelCanvas,
+          canvasCtx: accelCanvasCtx,
+          data,
+        });
+      };
+      requestAnimationFrame(draw);
+    }
+  }, [accelerometerMetrics]);
+
+  useEffect(() => {
+    if (gyroCanvasRef) {
+      const gyroCanvas = gyroCanvasRef.current;
+      const gyroCanvasCtx = gyroCanvas.getContext('2d');
+      const data = gyroscopeMetrics.map((metric) => metric.a);
+      const draw = () => {
+        drawWaveform({
+          canvas: gyroCanvas,
+          canvasCtx: gyroCanvasCtx,
+          data,
+        });
+      };
+      requestAnimationFrame(draw);
+    }
+  }, [gyroscopeMetrics]);
+
   const startMeasurement = () => {
-    const canvas = canvasRef.current;
-    const canvasCtx = canvas.getContext('2d');
     const initAudioContext = async () => {
       const { audioContext: sensor } = await initAudio(({ samples, t }) => {
         const rms = Math.sqrt(samples.reduce((sum, sample) => sum + sample * sample, 0) / samples.length);
@@ -130,8 +178,6 @@ function Acquisition() {
           ...prevData,
           {t: t - startTime, d: decibel, samples },
         ]);
-
-        drawWaveform({ canvas, canvasCtx, samples });
       }) || { audioContext: null };
       setAudioContext(sensor);
     }
@@ -227,7 +273,7 @@ function Acquisition() {
   const gyroscopeMetric = gyroscopeMetrics.length > 0
     ? gyroscopeMetrics[gyroscopeMetrics.length - 1]
     : { t: 0, x: 0, y: 0, z: 0, a: 0 };
-    
+
   return (
     <Container
       maxWidth="sm"
@@ -292,7 +338,7 @@ function Acquisition() {
             <Typography variant='h6'>Decibel Meter Graph</Typography>
             <Box>
               <Typography variant='h6'>Waveform</Typography>
-              <canvas ref={canvasRef} width="300" height="200" />
+              <canvas ref={decibelCanvasRef} width="300" height="200" />
             </Box>
           </Box>
           <Box>
@@ -318,6 +364,14 @@ function Acquisition() {
               width={300}
               height={200}
             />
+          </Box>
+          <Box>
+            <Typography variant='h6'>Accelerometer Graph</Typography>
+            <canvas ref={accelCanvasRef} width="300" height="200" />
+          </Box>
+          <Box>
+            <Typography variant='h6'>Gyroscope Graph</Typography>
+            <canvas ref={gyroCanvasRef} width="300" height="200" />
           </Box>
         </Container>
       </Paper>

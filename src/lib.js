@@ -399,23 +399,59 @@ export const saveExcelFileNoInterpolation = (
     }
   });
   totalData.sort((a, b) => a.Time - b.Time);
+  const decibelData = [];
 
-  // CSV 데이터 생성 함수
-  const convertToCsv = (data) => {
-    // CSV 헤더 생성
-    const headers = Object.keys(data[0]).join(",") + "\n";
+  decibelMetrics.forEach(metric => {
+    // Create a new object starting with Time and Decibel
+    const newMetric = {
+      Time: metric.t,
+      Decibel: metric.d,
+    };
+  
+    // Add each sample with keys S1, S2, ..., Sn
+    metric.samples.forEach((sample, index) => {
+      decibelData.push({
+        Time: index === 0 ? metric.t : '',
+        Sample: sample,
+      });
+    });
+  
+    return newMetric;
+  });
 
-    // CSV 데이터 생성
-    const rows = data.map(row =>
-      Object.values(row)
-        .map(value => `"${value}"`) // 데이터에 쉼표나 공백이 있을 수 있으므로 값을 따옴표로 감쌉니다.
-        .join(",")
-    ).join("\n");
+  // Accelerometer 데이터를 배열 형식으로 변환
+  const accelData = accelerometerMetrics.map(metric => ({
+    Time: metric.t,
+    Ax: metric.x,
+    Ay: metric.y,
+    Az: metric.z,
+    "Linear Acceleration": metric.a,
+  }));
 
-    return headers + rows;
-  };
+  const gyroData = gyroscopeMetrics.map(metric => ({
+    Time: metric.t,
+    Rx: metric.x,
+    Ry: metric.y,
+    Rz: metric.z,
+    "Angular Acceleration": metric.a,
+  }));
 
   try {
+    // 두 개의 워크시트로 데이터를 추가
+    const wb = XLSX.utils.book_new();
+    const wsTotal = XLSX.utils.json_to_sheet(totalData);
+    const wsDecibel = XLSX.utils.json_to_sheet(decibelData);
+    const wsAccel = XLSX.utils.json_to_sheet(accelData);
+    const wsGyro = XLSX.utils.json_to_sheet(gyroData);
+  
+    XLSX.utils.book_append_sheet(wb, wsTotal, "Total Data");
+    XLSX.utils.book_append_sheet(wb, wsDecibel, "Decibel Data");
+    XLSX.utils.book_append_sheet(wb, wsAccel, "Accelerometer Data");
+    XLSX.utils.book_append_sheet(wb, wsGyro, "Gyroscope Data");
+  
+    // Excel 파일로 변환
+    const wbout = XLSX.write(wb, { bookType: "xlsx", type: "array" });
+  
     //Excel 파일명에 실행시간 추가 - YYYY_WW_MM-HH-mm_ss
     const getFormattedDate = () => {
       const date = new Date();
@@ -431,11 +467,9 @@ export const saveExcelFileNoInterpolation = (
   
     const formattedDate = getFormattedDate();
   
-    const csvData = convertToCsv(totalData);
-
     // 파일 저장
-    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-    saveAs(blob, `Time_Data_${formattedDate}.csv`);
+    const blob = new Blob([wbout], { type: "application/octet-stream" });
+    saveAs(blob, `Time_Data_${formattedDate}.xlsx`);
   } catch (error) {
     console.error("파일 저장 중 오류가 발생했습니다.", error);
     alert("파일 저장 중 오류가 발생했습니다.");
