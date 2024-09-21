@@ -49,7 +49,7 @@ function Main() {
               setTWating(event.target.value);
             }}
           /> */}
-          <TextField
+          {/* <TextField
             label="Tinterval (seconds)"
             variant="filled"
             type="number"
@@ -63,7 +63,7 @@ function Main() {
             onChange={(event) => {
               setTInterval(event.target.value);
             }}
-          />
+          /> */}
           <TextField
             label="Tmaxrun"
             variant="filled"

@@ -147,10 +147,11 @@ export const saveExcelFile = (
         Ax: '',
         Ay: '',
         Az: '',
+        Aa: '',
         Rx: '',
         Ry: '',
         Rz: '',
-
+        Ra: '',
       });
     });
   });
@@ -161,6 +162,7 @@ export const saveExcelFile = (
       matchingData.Ax = metric.x;
       matchingData.Ay = metric.y;
       matchingData.Az = metric.z;
+      matchingData.Aa = metric.a;
     } else {
       totalData.push({
         Time: metric.t,
@@ -168,9 +170,11 @@ export const saveExcelFile = (
         Ax: metric.x,
         Ay: metric.y,
         Az: metric.z,
+        Aa: metric.a,
         Rx: '',
         Ry: '',
         Rz: '',
+        Ra: '',
       });
     }
   });
@@ -188,9 +192,11 @@ export const saveExcelFile = (
         Ax: '',
         Ay: '',
         Az: '',
+        Aa: '',
         Rx: metric.x,
         Ry: metric.y,
         Rz: metric.z,
+        Ra: metric.a,
       });
     }
   });
@@ -247,14 +253,17 @@ export const saveExcelFile = (
           totalData[index].Ax = prevData.Ax + factor * (nextData.Ax - prevData.Ax)
           totalData[index].Ay = prevData.Ay + factor * (nextData.Ay - prevData.Ay)
           totalData[index].Az = prevData.Az + factor * (nextData.Az - prevData.Az)
+          totalData[index].Aa = prevData.Aa + factor * (nextData.Aa - prevData.Aa)
         } else if (prevData) {
           totalData[index].Ax = prevData.Ax;
           totalData[index].Ay = prevData.Ay;
           totalData[index].Az = prevData.Az;
+          totalData[index].Aa = prevData.Aa;
         } else if (nextData) {
           totalData[index].Ax = nextData.Ax;
           totalData[index].Ay = nextData.Ay;
           totalData[index].Az = nextData.Az;
+          totalData[index].Aa = nextData.Aa;
         }
       }
     }
@@ -281,14 +290,17 @@ export const saveExcelFile = (
           totalData[index].Rx = prevData.Rx + factor * (nextData.Rx - prevData.Rx)
           totalData[index].Ry = prevData.Ry + factor * (nextData.Ry - prevData.Ry)
           totalData[index].Rz = prevData.Rz + factor * (nextData.Rz - prevData.Rz)
+          totalData[index].Ra = prevData.Ra + factor * (nextData.Ra - prevData.Ra)
         } else if (prevData) {
           totalData[index].Rx = prevData.Rx;
           totalData[index].Ry = prevData.Ry;
           totalData[index].Rz = prevData.Rz;
+          totalData[index].Ra = prevData.Ra;
         } else if (nextData) {
           totalData[index].Rx = nextData.Rx;
           totalData[index].Ry = nextData.Ry;
           totalData[index].Rz = nextData.Rz;
+          totalData[index].Ra = nextData.Ra;
         }
       }
     }
@@ -351,10 +363,11 @@ export const saveExcelFileNoInterpolation = (
         Ax: '',
         Ay: '',
         Az: '',
+        Aa: '',
         Rx: '',
         Ry: '',
         Rz: '',
-
+        Ra: '',
       });
     });
   });
@@ -365,6 +378,7 @@ export const saveExcelFileNoInterpolation = (
       matchingData.Ax = metric.x;
       matchingData.Ay = metric.y;
       matchingData.Az = metric.z;
+      matchingData.Aa = metric.a;
     } else {
       totalData.push({
         Time: metric.t,
@@ -372,9 +386,11 @@ export const saveExcelFileNoInterpolation = (
         Ax: metric.x,
         Ay: metric.y,
         Az: metric.z,
+        Aa: metric.a,
         Rx: '',
         Ry: '',
         Rz: '',
+        Ra: '',
       });
     }
   });
@@ -385,6 +401,7 @@ export const saveExcelFileNoInterpolation = (
       matchingData.Rx = metric.x;
       matchingData.Ry = metric.y;
       matchingData.Rz = metric.z;
+      matchingData.Ra = metric.a;
     } else {
       totalData.push({
         Time: metric.t,
@@ -392,9 +409,11 @@ export const saveExcelFileNoInterpolation = (
         Ax: '',
         Ay: '',
         Az: '',
+        Aa: '',
         Rx: metric.x,
         Ry: metric.y,
         Rz: metric.z,
+        Ra: metric.a,
       });
     }
   });

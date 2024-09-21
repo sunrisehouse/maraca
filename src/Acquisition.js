@@ -2,7 +2,7 @@ import './Acquisition.css';
 import { Backdrop, Box, Button, ButtonGroup, CircularProgress, Container, Paper, Typography } from '@mui/material';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LineChart } from '@mui/x-charts';
-import { ArrowBack, Download, PauseCircle, Pending, PlayCircleFilled } from '@mui/icons-material';
+import { ArrowBack, Download, PauseCircle, PlayCircleFilled } from '@mui/icons-material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { initAccelerometer, initAudio, initGyroscope, saveExcelFile, saveExcelFileNoInterpolation, useWaveformVisualizerCanvasRef } from './lib';
 import CircularBuffer from "./CircularBuffer";
@@ -26,16 +26,13 @@ function Acquisition() {
   const [gyroscopeMetrics, setGyroscopeMetrics] = useState([]);
 
   const [searchParams] = useSearchParams();
-  const tInterval = Number(searchParams.get('tInterval'));
-  const tWaiting = Number(searchParams.get('tWaiting'));
   const tMaxRun = Number(searchParams.get('tMaxRun'));
 
   const [restartTime, setRestartTime] = useState(0);
   const [remainingTime, setRemainingTime] = useState(tMaxRun);
-  const [isTWatingReached, setIsTWatingReached] = useState(false);
   const [isTMaxRunReached, setIsTMaxRunReached] = useState(false);
 
-  const startTime = useMemo(() => Date.now());
+  const startTime = useMemo(() => Date.now(), []);
 
   const decibelCanvasRef = useRef(null);
   const accelCanvasRef = useRef(null);
@@ -57,9 +54,7 @@ function Acquisition() {
   }, []);
 
   useEffect(() => {
-    return () => {
-      destroyAllSensors();
-    }
+    return () => { destroyAllSensors(); };
   }, []);
 
   useEffect(() => {
@@ -86,56 +81,39 @@ function Acquisition() {
     }, time));
   };
 
-  const drawWaveform = ({ canvas, canvasCtx, data }) => {
-    // Canvas 설정
-    canvasCtx.clearRect(0, 0, canvas.width, canvas.height);
+  const drawWaveform = ({ canvasWidth, canvasHeight, canvasCtx, data }) => {
+    canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     canvasCtx.fillStyle = 'white';
-    canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // 파형 그리기 설정
+    canvasCtx.fillRect(0, 0, canvasWidth, canvasHeight);
     canvasCtx.lineWidth = 2;
     canvasCtx.strokeStyle = '#02B2AF';
     canvasCtx.beginPath();
-
-    const sliceWidth = canvas.width / data.length;
+    const sliceWidth = canvasWidth / data.length;
     let x = 0;
-
     for (let i = 0; i < data.length; i++) {
       const v = data[i]
-      const y = (v * canvas.height) / 2 + canvas.height / 2;
-
-      if (i === 0) {
-        canvasCtx.moveTo(x, y);
-      } else {
-        canvasCtx.lineTo(x, y);
-      }
-
+      const y = (v * canvasHeight) / 2 + canvasHeight / 2;
+      if (i === 0) canvasCtx.moveTo(x, y);
+      else canvasCtx.lineTo(x, y);
       x += sliceWidth;
     }
-
-    canvasCtx.lineTo(canvas.width, canvas.height / 2);
+    canvasCtx.lineTo(canvasWidth, canvasHeight / 2);
     canvasCtx.stroke();
   }
 
-  const drawLineChart = ({ canvas, canvasCtx, data }) => {
-    const canvasWidth = canvas.width;
-    const canvasHeight = canvas.height;
-    
-    const maxDataValue = 30; // 리스트의 최대값 (10)
-    const minDataValue = 0; // 리스트의 최소값 (0)
-    const scaleY = canvasHeight / (maxDataValue - minDataValue); // 높이 스케일
+  const drawLineChart = ({ canvasWidth, canvasHeight, canvasCtx, data, maxDataValue }) => {
+    const minDataValue = 0;
+    const scaleY = canvasHeight / (maxDataValue - minDataValue);
     const stepX = canvasWidth / (data.length - 1);
     
-    canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight); // 캔버스 초기화
-    
+    canvasCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     canvasCtx.beginPath();
-    canvasCtx.moveTo(0, canvasHeight - data[0] * scaleY); // 첫번째 점
+    canvasCtx.moveTo(0, canvasHeight - data[0] * scaleY);
 
     for (let i = 1; i < data.length; i++) {
-      const x = i * stepX; // X축 좌표
-      const y = canvasHeight - data[i] * scaleY; // Y축 좌표 (값을 캔버스 높이에 맞춰 반전)
-
-      canvasCtx.lineTo(x, y); // 다음 점으로 선을 이어감
+      const x = i * stepX;
+      const y = canvasHeight - data[i] * scaleY;
+      canvasCtx.lineTo(x, y);
     }
 
     canvasCtx.strokeStyle = '#02B2AF';
@@ -152,7 +130,7 @@ function Acquisition() {
         drawWaveform({
           canvas: decibelCanvas,
           canvasCtx: decibelCanvasCtx,
-          data
+          data,
         });
       };
       requestAnimationFrame(draw);
@@ -160,7 +138,7 @@ function Acquisition() {
   }, [decibelMetrics]);
 
   useEffect(() => {
-    if (accelCanvasRef) {
+    if (accelCanvasRef && accelerometerMetrics.length > 0) {
       const accelCanvas = accelCanvasRef.current;
       const accelCanvasCtx = accelCanvas.getContext('2d');
       let data = accelerometerMetrics.map((metric) => metric.a);
@@ -171,12 +149,13 @@ function Acquisition() {
         const padding = Array(requiredLength - data.length).fill(0);
         data = [...data, ...padding]
       }
-      console.log(data)
       const draw = () => {
         drawLineChart({
-          canvas: accelCanvas,
+          canvasWidth: accelCanvas.width,
+          canvasHeight: accelCanvas.height,
           canvasCtx: accelCanvasCtx,
           data,
+          maxDataValue: 50,
         });
       };
       requestAnimationFrame(draw);
@@ -184,7 +163,7 @@ function Acquisition() {
   }, [accelerometerMetrics]);
 
   useEffect(() => {
-    if (gyroCanvasRef) {
+    if (gyroCanvasRef && gyroscopeMetrics.length > 0) {
       const gyroCanvas = gyroCanvasRef.current;
       const gyroCanvasCtx = gyroCanvas.getContext('2d');
       let data = gyroscopeMetrics.map((metric) => metric.a);
@@ -197,9 +176,11 @@ function Acquisition() {
       }
       const draw = () => {
         drawLineChart({
-          canvas: gyroCanvas,
+          canvasWidth: gyroCanvas.width,
+          canvasHeight: gyroCanvas.height,
           canvasCtx: gyroCanvasCtx,
           data,
+          maxDataValue: 10,
         });
       };
       requestAnimationFrame(draw);
@@ -257,10 +238,7 @@ function Acquisition() {
   };
 
   useEffect(() => {
-    setTimeout(() => {
-      setIsTWatingReached(true);
-      if (!isMeasuring) startMeasurement();
-    }, tWaiting);
+    startMeasurement();
   }, []);
 
   const handleSave = () => {
@@ -278,7 +256,6 @@ function Acquisition() {
       } finally {
         setIsSaving(false);
       }
-      
     }, 400);
   };
 
@@ -297,7 +274,6 @@ function Acquisition() {
       } finally {
         setIsSaving(false);
       }
-      
     }, 400);
   };
 
@@ -333,17 +309,17 @@ function Acquisition() {
               <Button
                 variant="contained"
                 onClick={isMeasuring ? stopMeasurement : startMeasurement}
-                startIcon={!isTWatingReached ? <Pending /> : isMeasuring ? <PauseCircle /> : <PlayCircleFilled /> }
+                startIcon={isMeasuring ? <PauseCircle /> : <PlayCircleFilled /> }
                 color={isMeasuring ? "secondary" : "primary"}
-                disabled={!isTWatingReached || isTMaxRunReached}
+                disabled={isTMaxRunReached}
                 sx={{ width: "104px" }}
               >
-                {!isTWatingReached ? "wating" : isMeasuring ? "pause " : "restart"}
+                {isMeasuring ? "pause " : "restart"}
               </Button>
               <Button
                 variant="contained"
                 onClick={handleSave}
-                disabled={!isTWatingReached || isMeasuring}
+                disabled={isMeasuring}
                 startIcon={<Download />}
               >
                 save
@@ -364,7 +340,7 @@ function Acquisition() {
         <Button
           variant="contained"
           onClick={handleSaveNoInterpolation}
-          disabled={!isTWatingReached || isMeasuring}
+          disabled={isMeasuring}
           startIcon={<Download />}
         >
           no interpolation save
@@ -375,12 +351,17 @@ function Acquisition() {
         <Container>
           <Box>
             <Typography variant='h6'>Decibel Meter Graph</Typography>
-            <Box>
-              <Typography variant='h6'>Waveform</Typography>
-              <canvas ref={decibelCanvasRef} width="300" height="200" />
-            </Box>
+            <canvas ref={decibelCanvasRef} width="300" height="200" />
           </Box>
           <Box>
+            <Typography variant='h6'>Accelerometer Graph</Typography>
+            <canvas ref={accelCanvasRef} width="300" height="200" />
+          </Box>
+          <Box>
+            <Typography variant='h6'>Gyroscope Graph</Typography>
+            <canvas ref={gyroCanvasRef} width="300" height="200" />
+          </Box>
+          {/* <Box>
             <Typography variant='h6'>Accelerometer Graph</Typography>
             <LineChart
               dataset={accelerometerMetrics}
@@ -403,22 +384,11 @@ function Acquisition() {
               width={300}
               height={200}
             />
-          </Box>
-          <Box>
-            <Typography variant='h6'>Accelerometer Graph</Typography>
-            <canvas ref={accelCanvasRef} width="300" height="200" />
-          </Box>
-          <Box>
-            <Typography variant='h6'>Gyroscope Graph</Typography>
-            <canvas ref={gyroCanvasRef} width="300" height="200" />
-          </Box>
+          </Box> */}
         </Container>
       </Paper>
       <Paper>
         <Container>
-          {/* <Box>
-            <Typography variant='h6'>Time: ({intervalCount}) ({decibelBuffer.getHead()}) ({accelerometerBuffer.getHead()}) ({gyroscopeBuffer.getHead()})</Typography>
-          </Box> */}
           <Box>
             <Typography variant='h6'>Decibel Meter Data ({decibelMetrics.length}/{decibelBuffer.getHead()})</Typography>
             <p>Measurement Time: {decibelMetric.t ? decibelMetric.t.toFixed(2) : "N/A"}</p>
