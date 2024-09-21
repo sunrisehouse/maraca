@@ -128,7 +128,8 @@ function Acquisition() {
       const data = decibelMetrics[decibelMetrics.length - 1].samples;
       const draw = () => {
         drawWaveform({
-          canvas: decibelCanvas,
+          canvasWidth: decibelCanvas.width,
+          canvasHeight: decibelCanvas.height,
           canvasCtx: decibelCanvasCtx,
           data,
         });
